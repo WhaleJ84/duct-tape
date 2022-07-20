@@ -22,3 +22,6 @@ sudo ./PATH/TO/bootstrap.sh
 curl -s file:///PATH/TO/bootstrap.sh | sudo bash
 ```
 
+When testing ansible locally, the bootstrap will only pull from the remote repository.
+To test the latest local changes, run `ansible-playbook -K local.yml`.
+
