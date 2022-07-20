@@ -12,4 +12,4 @@
       changed_when: false
 
   roles:
-    - { role: whalej84.keepassxc, theme: "dark" }
+    - {role: whalej84.keepassxc, theme: "dark"}
