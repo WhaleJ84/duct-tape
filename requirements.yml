@@ -1,0 +1,8 @@
+---
+collections:
+  - community.general
+
+roles:
+  - name: whalej84.keepassxc
+    src: https://github.com/WhaleJ84/ansible-role-keepassxc.git
+    scm: git
