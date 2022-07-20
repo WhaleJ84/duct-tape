@@ -170,10 +170,45 @@ install_pip_dependencies(){
     fi
 }
 
+install_ansible_dependencies(){
+    if [ ! -f "/tmp/requirements.yml" ]; then
+        spinner_text "Downloading ansible requirements file..." &
+        SPIN_PID="$!"
+        trap "kill -9 $SPIN_PID" `seq 0 15`
+        set +e
+        if curl https://raw.githubusercontent.com/WhaleJ84/duct-tape/main/requirements.yml -s -o /tmp/requirements.yml; then
+            rc="$?"
+            kill -9 $SPIN_PID 2>/dev/null
+            printf "%b[ %b ] Downloaded ansible requirements file\\n" "${OVERWRITE}" "${SUCCESS}"
+        else
+            rc="$?"
+            kill -9 $SPIN_PID 2>/dev/null
+            printf "%b[ %b ] Downloading ansible requirements file\\n" "${OVERWRITE}" "${FAILURE}"
+        fi
+        set -e
+    fi
+
+    spinner_text "Installing ansible requirements..." &
+    SPIN_PID="$!"
+    trap "kill -9 $SPIN_PID" `seq 0 15`
+    set +e
+    if ansible-galaxy install -r /tmp/requirements.yml &>/dev/null; then
+        rc="$?"
+        kill -9 $SPIN_PID 2>/dev/null
+        printf "%b[ %b ] Installed ansible requirements\\n" "${OVERWRITE}" "${SUCCESS}"
+    else
+        rc="$?"
+        kill -9 $SPIN_PID 2>/dev/null
+        printf "%b[ %b ] Installing ansible requirements\\n" "${OVERWRITE}" "${FAILURE}"
+    fi
+    set -e
+}
+
 [ "$(is_command apt)" ] || PACKAGE_MANAGER="apt"
 check_apt_dependencies $APT_DEPENDENCIES
 install_apt_dependencies
 check_pip
 check_pip_dependencies $PIP_DEPENDENCIES
 install_pip_dependencies
+install_ansible_dependencies
 ansible-pull -KU https://github.com/WhaleJ84/duct-tape.git
