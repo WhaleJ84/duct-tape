@@ -2,6 +2,11 @@
 
 Collection of bootstrapping scripts and repos intended for desktop configuration via Ansible-pull
 
+**WARNING:** Unless you are me, do not run any of the code you see here.
+This repository is only public for my own convenience reasons and no branches are used.
+Code within can be unstable at any moment and is not tested on any systems other than my own.
+You have been warned.
+
 ## Requirements
 
 Most of the requirements are automatically installed via the bootstrapping script.
