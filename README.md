@@ -13,12 +13,12 @@ To initiate the installation process, run the bootstrapping script with one of t
 
 ```shell
 # remotely
-curl https://raw.githubusercontent.com/WhaleJ84/duct-tape/main/bootstrap.sh | sudo bash
+curl -s https://raw.githubusercontent.com/WhaleJ84/duct-tape/main/bootstrap.sh | sudo bash
 
 # locally
 sudo ./PATH/TO/bootstrap.sh
 
 # simulate curl locally
-curl file:///PATH/TO/bootstrap.sh | sudo bash
+curl -s file:///PATH/TO/bootstrap.sh | sudo bash
 ```
 

@@ -79,7 +79,7 @@ install_pip(){
         SPIN_PID="$!"
         trap "kill -9 $SPIN_PID" `seq 0 15`
         set +e
-        if curl https://bootstrap.pypa.io/get-pip.py -o /tmp/get-pip.py &>/dev/null; then
+        if curl https://bootstrap.pypa.io/get-pip.py -s -o /tmp/get-pip.py; then
             rc="$?"
             kill -9 $SPIN_PID 2>/dev/null
             printf "%b[ %b ] Downloaded pip bootstrapping script\\n" "${OVERWRITE}" "${SUCCESS}"
