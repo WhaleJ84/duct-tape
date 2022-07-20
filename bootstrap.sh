@@ -3,11 +3,11 @@
 # https://github.com/pi-hole/pi-hole/blob/master/automated%20install/basic-install.sh
 set -e
 
-TEST_PACKAGES="cowsay lolcat"
+#TEST_PACKAGES="cowsay lolcat"
 
 DETECTED_OS=$(grep '^ID=' /etc/os-release | cut -d '=' -f2 | tr -d '"')
 DETECTED_VERSION=$(grep VERSION_ID /etc/os-release | cut -d '=' -f2 | tr -d '"')
-APT_DEPENDENCIES="$TEST_PACKAGES git python3"
+APT_DEPENDENCIES="$TEST_PACKAGES curl git python3"
 
 COL_NC='\e[0m'
 COL_LIGHT_GREEN='\e[1;32m'
@@ -56,11 +56,10 @@ check_apt_dependencies(){
 install_apt_dependencies(){
     if [[ "${#installArray[@]}" -gt 0 ]]; then
         for package in $installArray; do
-            spinner_text "Processing install(s) for: $package" &
+            spinner_text "Processing install(s) for: $package..." &
             SPIN_PID="$!"
             trap "kill -9 $SPIN_PID" `seq 0 15`
             set +e
-            sleep 1
             if "${PACKAGE_MANAGER}" install -y "$package" &>/dev/null; then
                 rc="$?"
                 kill -9 $SPIN_PID 2>/dev/null
@@ -75,7 +74,60 @@ install_apt_dependencies(){
     fi
 }
 
+install_pip_dependency(){
+    if [ ! -f "/tmp/get-pip.py" ]; then
+        spinner_text "Downloading pip bootstrapping script..." &
+        SPIN_PID="$!"
+        trap "kill -9 $SPIN_PID" `seq 0 15`
+        set +e
+        if curl https://bootstrap.pypa.io/get-pip.py -o /tmp/get-pip.py &>/dev/null; then
+            rc="$?"
+            kill -9 $SPIN_PID 2>/dev/null
+            printf "%b[ %b ] Downloaded pip bootstrapping script\\n" "${OVERWRITE}" "${SUCCESS}"
+        else
+            rc="$?"
+            kill -9 $SPIN_PID 2>/dev/null
+            printf "%b[ %b ] Downloading pip bootstrapping script\\n" "${OVERWRITE}" "${FAILURE}"
+        fi
+        set -e
+    fi
+
+    spinner_text "Installing pip..." &
+    SPIN_PID="$!"
+    trap "kill -9 $SPIN_PID" `seq 0 15`
+    set +e
+    if python3 /tmp/get-pip.py --user &>/dev/null; then
+        rc="$?"
+        kill -9 $SPIN_PID 2>/dev/null
+        printf "%b[ %b ] Installed pip\\n" "${OVERWRITE}" "${SUCCESS}"
+    else
+        rc="$?"
+        kill -9 $SPIN_PID 2>/dev/null
+        printf "%b[ %b ] Installing pip\\n" "${OVERWRITE}" "${FAILURE}"
+    fi
+    set -e
+}
+
+check_pip_dependency(){
+    spinner_text "Checking for pip..." & 
+    SPIN_PID="$!"
+    trap "kill -9 $SPIN_PID" `seq 0 15`
+    set +e
+    if python3 -m pip -V 2&>/dev/null; then 
+        rc="$?"
+        kill -9 $SPIN_PID 2>/dev/null
+        printf "%b[ %b ] Checked for pip\\n" "${OVERWRITE}" "${SUCCESS}"
+    else
+        rc="$?"
+        kill -9 $SPIN_PID 2>/dev/null
+        printf "%b[ %b ] Checked for pip (will be installed)\\n" "${OVERWRITE}" "${FAILURE}"
+        install_pip_dependency
+    fi
+    set -e
+}
+
 [ "$(is_command apt)" ] || PACKAGE_MANAGER="apt"
 check_apt_dependencies $APT_DEPENDENCIES
 install_apt_dependencies
-"${PACKAGE_MANAGER}" remove -y $TEST_PACKAGES
+check_pip_dependency
+#"${PACKAGE_MANAGER}" remove -y $TEST_PACKAGES
