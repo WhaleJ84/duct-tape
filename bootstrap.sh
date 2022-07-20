@@ -173,3 +173,4 @@ install_apt_dependencies
 check_pip
 check_pip_dependencies $PIP_DEPENDENCIES
 install_pip_dependencies
+ansible-pull -KU https://github.com/WhaleJ84/duct-tape.git
