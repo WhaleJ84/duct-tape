@@ -3,6 +3,9 @@
 # https://github.com/pi-hole/pi-hole/blob/master/automated%20install/basic-install.sh
 set -e
 
+export PY_COLORS='1'
+export ANSIBLE_FORCE_COLOR='1'
+
 DETECTED_OS=$(grep '^ID=' /etc/os-release | cut -d '=' -f2 | tr -d '"')
 DETECTED_VERSION=$(grep VERSION_ID /etc/os-release | cut -d '=' -f2 | tr -d '"')
 APT_DEPENDENCIES="curl git python3"
