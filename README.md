@@ -4,7 +4,7 @@ Collection of bootstrapping scripts and repos intended for desktop configuration
 Will eventually replace [older repository](https://github.com/WhaleJ84/duct_tape).
 
 **WARNING:** Unless you are me, do not run any of the code you see here.
-This repository is only public for my own convenience reasons and no branches are used.
+This repository is only public for my own convenience reasons.
 Code within can be unstable at any moment and is not tested on any systems other than my own.
 You have been warned.
 
