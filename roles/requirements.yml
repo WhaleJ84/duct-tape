@@ -1,0 +1,11 @@
+---
+roles:
+  - name: whalej84.keepassxc
+    src: https://github.com/WhaleJ84/ansible-role-keepassxc.git
+    scm: git
+
+  - name: whalej84.timeshift
+    src: https://github.com/WhaleJ84/ansible-role-timeshift.git
+    scm: git
+    version: dev
+
