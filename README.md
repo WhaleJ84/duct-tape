@@ -50,3 +50,7 @@ ansible-playbook local.yml --syntax-check || exit 1
 ansible-lint . || exit 1
 ``` 
 
+### Ansible Facts
+
+Gather facts on the relevant local systems using `ansible localhost -m ansible.builtin.setup`.
+
