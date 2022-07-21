@@ -8,4 +8,3 @@ roles:
     src: https://github.com/WhaleJ84/ansible-role-timeshift.git
     scm: git
     version: dev
-
