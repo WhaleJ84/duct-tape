@@ -54,3 +54,9 @@ ansible-lint . || exit 1
 
 Gather facts on the relevant local systems using `ansible localhost -m ansible.builtin.setup`.
 
+### Using local roles
+
+To prevent requiring pushing changes to the remote role repo after every change and redownloading the role, a simpler method exists.
+Create a local environment variable called `ANSIBLE_ROLES_PATH` and point it to the directory where the roles exist.
+Ensure the directory names within match the role names in the playbooks, and they will take priority over the downloaded counterparts.
+
