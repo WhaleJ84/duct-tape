@@ -192,7 +192,7 @@ install_ansible_dependencies(){
     SPIN_PID="$!"
     trap "kill -9 $SPIN_PID" `seq 0 15`
     set +e
-    if ansible-galaxy install -r /tmp/requirements.yml &>/dev/null; then
+    if ansible-galaxy install -r /tmp/requirements.yml --force &>/dev/null; then
         rc="$?"
         kill -9 $SPIN_PID 2>/dev/null
         printf "%b[ %b ] Installed ansible requirements\\n" "${OVERWRITE}" "${SUCCESS}"
