@@ -12,4 +12,15 @@
       changed_when: false
 
   roles:
-    - {role: whalej84.keepassxc, theme: "dark"}
+    - role: whalej84.timeshift
+      vars:
+        location_mount: "/media/james/storage"
+        do_first_run: "false"
+        schedule_monthly: "true"
+        schedule_weekly: "true"
+        schedule_daily: "true"
+        schedule_boot: "true"
+        include_btrfs_home_for_backup: "true"
+        include_btrfs_home_for_restore: "true"
+
+    - role: whalej84.timeshift-autosnap-apt
