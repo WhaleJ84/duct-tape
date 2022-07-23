@@ -7,4 +7,10 @@ roles:
   - name: whalej84.timeshift
     src: https://github.com/WhaleJ84/ansible-role-timeshift.git
     scm: git
-    version: dev
+
+  - name: whalej84.timeshift-autosnap-apt
+    src: https://github.com/WhaleJ84/ansible-role-timeshift-autosnap-apt.git
+    scm: git
+
+collections:
+  - community.general
