@@ -46,6 +46,18 @@ ensure_in_path(){
     set -e
 }
 
+check_git_branch(){
+    spinner_text "GIT: checking branch..." &
+    SPIN_PID="$!"
+    trap "kill -9 $SPIN_PID" `seq 0 15`
+    set +e
+    GIT_ENV="$(git rev-parse --abbrev-ref HEAD)"
+    rc="$?"
+    kill -9 $SPIN_PID 2>/dev/null
+    printf "%b[ %b ] GIT: %s branch found\\n" "${OVERWRITE}" "${SUCCESS}" "$GIT_ENV"
+    set -e
+}
+
 check_apt_dependencies(){
     installArray=""
     for i in "$@"; do
@@ -218,6 +230,7 @@ install_ansible_dependencies(){
 
 [ "$(is_command apt)" ] || PACKAGE_MANAGER="apt"
 ensure_in_path "$HOME/.local/bin"
+check_git_branch
 check_apt_dependencies $APT_DEPENDENCIES
 install_apt_dependencies
 check_pip
