@@ -34,6 +34,18 @@ is_command(){
     command -v "$1" > /dev/null 2>&1
 }
 
+ensure_in_path(){
+    spinner_text "ENV: $1 found in PATH..." &
+    SPIN_PID="$!"
+    trap "kill -9 $SPIN_PID" `seq 0 15`
+    set +e
+    case ":${PATH:=$1}:" in
+        *:"$1":*) rc="$?" ; kill -9 $SPIN_PID 2>/dev/null ; printf "%b[ %b ] ENV: %s found in PATH\\n" "${OVERWRITE}" "${SUCCESS}" "$1" ;;
+        *) PATH="$1:$PATH" ; rc="$?" ; kill -9 $SPIN_PID 2>/dev/null ; printf "%b[ %b ] ENV: %s added to PATH for session\\n" "${OVERWRITE}" "${SUCCESS}" "$1" ;;
+    esac
+    set -e
+}
+
 check_apt_dependencies(){
     installArray=""
     for i in "$@"; do
@@ -152,18 +164,18 @@ check_pip_dependencies(){
 install_pip_dependencies(){
     if [[ "${#installArray[@]}" -gt 0 ]]; then
         for package in $installArray; do
-            spinner_text "Processing pip install(s) for: $package..." &
+            spinner_text "PIP: Processing install(s) for: $package..." &
             SPIN_PID="$!"
             trap "kill -9 $SPIN_PID" `seq 0 15`
             set +e
             if python3 -m pip install --user "$package" &>/dev/null; then
                 rc="$?"
                 kill -9 $SPIN_PID 2>/dev/null
-                printf "%b[ %b ] Processed pip install(s) for: %s\\n" "${OVERWRITE}" "${SUCCESS}" "$package"
+                printf "%b[ %b ] PIP: Processed install(s) for: %s\\n" "${OVERWRITE}" "${SUCCESS}" "$package"
             else
                 rc="$?"
                 kill -9 $SPIN_PID 2>/dev/null
-                printf "%b[ %b ] Processed pip install(s) for: %s\\n" "${OVERWRITE}" "${FAILURE}" "$package"
+                printf "%b[ %b ] PIP: Processed install(s) for: %s\\n" "${OVERWRITE}" "${FAILURE}" "$package"
             fi
             set -e
         done
@@ -172,43 +184,45 @@ install_pip_dependencies(){
 
 install_ansible_dependencies(){
     if [ ! -f "/tmp/requirements.yml" ]; then
-        spinner_text "Downloading ansible requirements file..." &
+        spinner_text "ANSIBLE: Downloading requirements file..." &
         SPIN_PID="$!"
         trap "kill -9 $SPIN_PID" `seq 0 15`
         set +e
         if curl https://raw.githubusercontent.com/WhaleJ84/duct-tape/main/requirements.yml -s -o /tmp/requirements.yml; then
             rc="$?"
             kill -9 $SPIN_PID 2>/dev/null
-            printf "%b[ %b ] Downloaded ansible requirements file\\n" "${OVERWRITE}" "${SUCCESS}"
+            printf "%b[ %b ] ANSIBLE: Downloaded requirements file\\n" "${OVERWRITE}" "${SUCCESS}"
         else
             rc="$?"
             kill -9 $SPIN_PID 2>/dev/null
-            printf "%b[ %b ] Downloading ansible requirements file\\n" "${OVERWRITE}" "${FAILURE}"
+            printf "%b[ %b ] ANSIBLE: Downloading requirements file\\n" "${OVERWRITE}" "${FAILURE}"
         fi
         set -e
     fi
 
-    spinner_text "Installing ansible requirements..." &
+    spinner_text "ANSIBLE: Installing requirements..." &
     SPIN_PID="$!"
     trap "kill -9 $SPIN_PID" `seq 0 15`
     set +e
-    if ansible-galaxy install -r /tmp/requirements.yml --force &>/dev/null; then
+    if ansible-galaxy install -r /tmp/requirements.yml &>/dev/null; then
         rc="$?"
         kill -9 $SPIN_PID 2>/dev/null
-        printf "%b[ %b ] Installed ansible requirements\\n" "${OVERWRITE}" "${SUCCESS}"
+        printf "%b[ %b ] ANSIBLE: Installed requirements\\n" "${OVERWRITE}" "${SUCCESS}"
     else
         rc="$?"
         kill -9 $SPIN_PID 2>/dev/null
-        printf "%b[ %b ] Installing ansible requirements\\n" "${OVERWRITE}" "${FAILURE}"
+        printf "%b[ %b ] ANSIBLE: Installing requirements\\n" "${OVERWRITE}" "${FAILURE}"
     fi
     set -e
 }
 
 [ "$(is_command apt)" ] || PACKAGE_MANAGER="apt"
+ensure_in_path "$HOME/.local/bin"
 check_apt_dependencies $APT_DEPENDENCIES
 install_apt_dependencies
 check_pip
 check_pip_dependencies $PIP_DEPENDENCIES
 install_pip_dependencies
 install_ansible_dependencies
-ansible-pull -KU https://github.com/WhaleJ84/duct-tape.git -C dev
+exit 1
+ansible-pull -KU https://github.com/WhaleJ84/duct-tape.git
