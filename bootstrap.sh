@@ -51,10 +51,10 @@ check_git_branch(){
     SPIN_PID="$!"
     trap "kill -9 $SPIN_PID" `seq 0 15`
     set +e
-    GIT_ENV="$(git rev-parse --abbrev-ref HEAD)"
+    GIT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
     rc="$?"
     kill -9 $SPIN_PID 2>/dev/null
-    printf "%b[ %b ] GIT: %s branch found\\n" "${OVERWRITE}" "${SUCCESS}" "$GIT_ENV"
+    printf "%b[ %b ] GIT: %s branch found\\n" "${OVERWRITE}" "${SUCCESS}" "$GIT_BRANCH"
     set -e
 }
 
@@ -200,7 +200,7 @@ install_ansible_dependencies(){
         SPIN_PID="$!"
         trap "kill -9 $SPIN_PID" `seq 0 15`
         set +e
-        if curl https://raw.githubusercontent.com/WhaleJ84/duct-tape/main/requirements.yml -s -o /tmp/requirements.yml; then
+        if curl "https://raw.githubusercontent.com/WhaleJ84/duct-tape/$GIT_BRANCH/requirements.yml" -s -o /tmp/requirements.yml; then
             rc="$?"
             kill -9 $SPIN_PID 2>/dev/null
             printf "%b[ %b ] ANSIBLE: Downloaded requirements file\\n" "${OVERWRITE}" "${SUCCESS}"
