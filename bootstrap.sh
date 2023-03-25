@@ -51,10 +51,17 @@ check_git_branch(){
     SPIN_PID="$!"
     trap "kill -9 $SPIN_PID" `seq 0 15`
     set +e
-    GIT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
-    rc="$?"
-    kill -9 $SPIN_PID 2>/dev/null
-    printf "%b[ %b ] GIT: %s branch found\\n" "${OVERWRITE}" "${SUCCESS}" "$GIT_BRANCH"
+    if [ $(git rev-parse --abbrev-ref HEAD 2>/dev/null) ]; then
+        GIT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+        rc="$?"
+        kill -9 $SPIN_PID 2>/dev/null
+        printf "%b[ %b ] GIT: %s branch found\\n" "${OVERWRITE}" "${SUCCESS}" "$GIT_BRANCH"
+    else
+        GIT_BRANCH="dev"
+        rc="$?"
+        kill -9 $SPIN_PID 2>/dev/null
+        printf "%b[ %b ] GIT: defaulted to %s branch\\n" "${OVERWRITE}" "${SUCCESS}" "$GIT_BRANCH"
+    fi
     set -e
 }
 
@@ -239,4 +246,5 @@ check_pip
 check_pip_dependencies $PIP_DEPENDENCIES
 install_pip_dependencies
 install_ansible_dependencies
+exit 0
 ansible-pull -KU https://github.com/WhaleJ84/duct-tape.git
