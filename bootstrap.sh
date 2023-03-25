@@ -195,19 +195,21 @@ install_pip_dependencies(){
 }
 
 install_ansible_dependencies(){
-    if [ ! -f "/tmp/requirements.yml" ]; then
-        spinner_text "ANSIBLE: Downloading requirements file..." &
+    REQUIREMENT_FILE="/tmp/$GIT_BRANCH-requirements.yml"
+    if [ ! -f "$REQUIREMENT_FILE" ]; then
+        REQUIREMENT_URL="https://raw.githubusercontent.com/WhaleJ84/duct-tape/$GIT_BRANCH/requirements.yml"
+        spinner_text "ANSIBLE: Downloading $REQUIREMENT_URL..." &
         SPIN_PID="$!"
         trap "kill -9 $SPIN_PID" `seq 0 15`
         set +e
-        if curl "https://raw.githubusercontent.com/WhaleJ84/duct-tape/$GIT_BRANCH/requirements.yml" -s -o /tmp/requirements.yml; then
+        if curl "$REQUIREMENT_URL" -C - -s -o "$REQUIREMENT_FILE"; then
             rc="$?"
             kill -9 $SPIN_PID 2>/dev/null
-            printf "%b[ %b ] ANSIBLE: Downloaded requirements file\\n" "${OVERWRITE}" "${SUCCESS}"
+            printf "%b[ %b ] ANSIBLE: Downloaded $REQUIREMENT_URL\\n" "${OVERWRITE}" "${SUCCESS}"
         else
             rc="$?"
             kill -9 $SPIN_PID 2>/dev/null
-            printf "%b[ %b ] ANSIBLE: Downloading requirements file\\n" "${OVERWRITE}" "${FAILURE}"
+            printf "%b[ %b ] ANSIBLE: Downloading $REQUIREMENT_URL\\n" "${OVERWRITE}" "${FAILURE}"
         fi
         set -e
     fi
@@ -216,7 +218,7 @@ install_ansible_dependencies(){
     SPIN_PID="$!"
     trap "kill -9 $SPIN_PID" `seq 0 15`
     set +e
-    if ansible-galaxy install -r /tmp/requirements.yml &>/dev/null; then
+    if ansible-galaxy install --force -r "$REQUIREMENT_FILE" &>/dev/null; then
         rc="$?"
         kill -9 $SPIN_PID 2>/dev/null
         printf "%b[ %b ] ANSIBLE: Installed requirements\\n" "${OVERWRITE}" "${SUCCESS}"
@@ -237,5 +239,4 @@ check_pip
 check_pip_dependencies $PIP_DEPENDENCIES
 install_pip_dependencies
 install_ansible_dependencies
-exit 1
 ansible-pull -KU https://github.com/WhaleJ84/duct-tape.git
