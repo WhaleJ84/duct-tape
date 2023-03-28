@@ -1,54 +1,53 @@
 #!/bin/bash
 # This script is heavily influenced by Pi-Hole's bootstrapping script:
 # https://github.com/pi-hole/pi-hole/blob/master/automated%20install/basic-install.sh
-LOGO="::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-::;::;::;::;::;::;::;::;::;::;::;::;::;::;::;::;::;::;::;::;::;::;::;::;::;::;::
-:::::::::::::::;::;::;::;::;::;::;::::::::::::::::::::::::::::::::::::::::::::::
-:::;::;::;::;;:.   .  .. .. .. . . .:;:;::;::;::;::;::;::;::;::;::;::;::;::;::;:
-::::::::::;.t8S ;t%%tt:..     . . .tX8S:::::::::::::::::::::::::::::::::::::::::
-::;::;:;:;X%88888888888888S;;;;;;;t;t%t;;8;:;::;::;::;::;::;::;::;::;::;::;::;::
-::::::;.S@X8888888@888888888Stttttttttttt%t8.:::::::::::::::::::::::::::::::::::
-::;::;.S88888888@88@888@888888S%%%%%%%%%%%%S.@.;:;::;:;::;::;::;::;::;::;::;::;:
-:::;:t%@88888@8@8X@8@@8888888888SSSSSSSSSSSSSX %:::::::::::::;::::::::;:::::::::
-::::.tX88@88@@88@8@8@8@888888@888SXXSXXXXXXXXXX%%::;:::;::;:::::;::;:::::;::;::;
-::;.tX88@8@@88@8@@8@8X8@8X88@8@8@8X%SSSSSSSSSSSStX.;::::::::;::::::::;::::::::::
-:; 8@8888@@8X@@@8@8@8X8X@8X88@8X888@tttttttt;t;t;t8::;::;:::::;::;:::::;::;::;::
-:::SX888X@@@@88 S. X 8X88X@@8@88@888%.::::.::.:.:.:S.;::::;::::::::;:::::::::::;
-;.8@888X@@@8S :.;;t;:  8X88X@8@88@888:      .  .   ;;:::;:::;::;:::::;::;::;::::
-;.;X8@@@@@@ .:t8.888888S; 88X8@@88X8@8.:::.:.:.:... X.;::::::::::;:::::::::::;::
-:;8@@8@@@8  ;88888 t888 . :8@8X8X8@@8@t;.::.:.:.:.:..S.;::;::;:::::;::;::;:::::;
-.@@88X@@@X 88888888888888.  8X8X8@8@8@8 :::::::.:.:: X.::::::::;:::::::::::;::::
- @X88@8@8 888S888888888% ;.% 8@8X8@8X8@X:::::::::::::.S::;::;::::;::;::;:::::;::
- %X8@88@@ 88888St@888888::; S @@8@8@8X88.;;;;;;;:;::; 8 ;:::::;::::::::::;:::::;
- tS888@8X 88888888S88.8S.;:.S%@8S8@8@8X8t%;;;;;;;;:::.S::::;:::::;::;::;:::;::::
- SX8@8X@8;888888888888X%::;;   X@8X8@@8 %%ttt;;;:::::.:t::::::;::::::::::::::;::
- @S88@@8 %8@888@@@@@@@@X.;::.8 @8X8@88X88:t;;;::::.... S.;::;::::;::;::;::;:::::
-.8@8@8X888X88@@@XXXXXSX8:::;:;8X8@8@8X8X8 t;;:::.......X.:;::::;::::::::::::;::;
-:t8@8@@X8;@88XXXS8XXSX8 S:::;.8%@@X8X8X8  t:::.....   :8.;::::::::;::;::;:::::::
-:.t@8@8S8 X@XXXX8@8888888;;:; 8%888X8X8@8t;::...   ...;8.:::;::;::::::::::;::;::
-; SX8@8S88 X@888888@8@@8 t::::8S88X8S8X8X%:..    .....;@.;:::::::;::;::;::::::::
-::t8@8X8X@.888@8@@XX@@XX8 8:.@;8@88@8X8X@S.   .....:.:;@.:::;::;:::::::::;::;:;:
-:; :S8XX888t@@@88@@8@XX@X@ 8 t.8@88XX8X8XS.. ....:... :@.;::::::::;::;::::::::::
-::.S8X8X8 XS88888@8@@8X8@88X888X8888S8X@8@..  . ....::.8 ;::;::;:::::::;::;:::::
-::;.XX@8X888 88@@@8@8@@@@8@888@8888S8X8XS@t;;;;;;;;;;::tt:::::::::;::;::::::;:;:
-:::;.%XX8X888 .8X@888888888X8@@8888X8XX8 X%tttttt;;;:;:.8.:;::;:::::::::;:::::::
-:::;.X8XX8@8888:88888888.S SXX8888@X8S8@@8:%t;;;;::::::::S::::::;::;::;:::;:::;:
-::::;.@8XX88888888  ;t888@8S@8888X@8S8S@@ t;:;:::::::...  8.;:::::::::::::::;:::
-:::::;.8X8S88888@X88888888 @8888@X@XS8XX88@.;::.::... .::;%8 ;:;::;::;::;:::::::
-::;:::;.@8S@888888888S8@8888888@X88S8S8S8888:...  .:;ttt%SSStt::;:::::::::;::;::
-:::::::;:XtX@888888888@888888@@@8XX8S@X8@888@.:;t%%SSSXXXXSSSS.8;:::;:;:::::;:::
-::;::;::::. S@@8888888888888 888X@8S8X@@8888@X.S%SXXXXSXSSSSSS%X%X%...:::;:::.::
-:::::::::;::88X@@88 X X888888@@@8S8SX@@8@.%8;.ttSXSSSSSSSSSS%S%S%S%;.tS@888@SXt:
-:::;:::;:::;;:8.8 @88888 8@@@88XX88X:@Xt:.::::;:tS;S%%%%%%%%%%S%%S%%%%%%%%%%S;::
-::::::::::::::; :%8 8@888888XSXX:8; .;;::::;::::;.:S%St%%%%%%%%%S%%%%%%%t;;X.;::
-:;::;:::;::;:::;:::XS::t%%; S8%::::;:::::;::::;:::::t8;;%%t%%%%%%%%%tt;t;t%.::::
-::::::;:::::::::::;::::.:.:.;;:::::::::;::::;::::;::::.:%8t:tSS%%%%%%% 8;:::;:;:
-::;::::::;::;:::;::::::::::::::::::;:::::::::::;:::::::;::..%8:tXXXS;% :;:::::::
-::::;::::::::;:::::;::;:::;:::;:;::::;::;:;::;:::::;:::::;:::.:;S8X;::;::::;:::;
-::::::;:::;::::;::::::::;:::;:::::;::::::::::::::;:::;::::::;:::;:;::::::;::::::
-::; duct-tape :::;::;:::::::::::;::::;::;::;:::;:::::::;::;::::::::::::;::::;::;
-::::;:::::::;::;::::::;::;:::;:::::;:::::::::;::::;::;:::::::;::;::;::::::::::::
-::;:::;::;::::::::;::::::::;::::;:::::;::;::::::;:::::::;::;:::::::::;::;::;::;:"
+LOGO=":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+::;::;::;::;::;::;::;::;::;::;::;::;::;::;::;::;::;::;::;::;::;::;::;::;::;::;:
+:::::::::::::::;::;::;::;::;::;::;:::::::::::::::::::::::::::::::::::::::::::::
+:::;::;::;::;;..   . ... .. .. . . .:;:;::;::;::;::;::;::;::;::;::;::;::;::;:::
+:::::::::;::%8;:tSSS%t;:......... .tX8t::::::::::::::::::::::::::::::::::::::;:
+::;::;:;.%;X8888888888888@%;;;;;t;ttttt:%@::;::;::;::;::;::;::;::;::;::;::;::::
+::::::; 88888888888888@88888%tttttttt%tttS t.;::::::::::::::::::::::::::::::;::
+::;:;:;.8888888888@8@888@88888%%%%%%%%%%%%S%S;:;::;:;::;:;::;::;::;::;::;::::::
+:::;.X8@88888@888@@@@8@8888@8888SSSXSSSXSSSSXS@:::::::::::::::::;::::::::;::;::
+::::;@@88@88@8@8@8@8@8@8@8@888888SXSXXSXXXXXXS8t.;:::;::;::;:;:::::;::;:::::::;
+::;. X88@8@@88@@8X8X8X8@8X8@8@8888SS%SSSS%S%S%SSt::;::::::::::::;:::::::;::;:::
+:; %X8888@@8X@8X@@8X8@8X@@88@888888%tt;t;tt;;t;;t:;:::;::;:::;:::::;::;::::::::
+::;8@88@X@@@@8S  :: XX@88@@@8@8@8@88:.:.:........:S.;::::::;::::;::::::::;::;::
+; @X88@@@@@8 ..:;8.;;. 8X8@8X8@88888X.  . .  .  .  8.:;::;::::;::::;::;:::::::;
+::%@8@@@@@@ .:8.888888:; @8@8X8@88X8@%::.:.:.:.:....%:::::::;::::;:::::::;::;::
+.%8X8@@@@8.::888t888%X88tt:8@8X8X8@888 :::::.:..:.: @.;:::;:::::::::;::;:::::::
+ 8X88X@@@  888888888888X .% 8@8X8@8@88X:::.:::::.:.::%.;::::::;::;::::::::;::;:
+ SX8@88@8S88888888888888.;   8@8X8@8@8@:;:::::::::::.8.;:::;:::::::;::;::::::::
+ tX8@@8X%:888888888888 %;:; 888S8@8@8@@St;;;;;;;;;:::;:::;:::;::;:::::::;::;:::
+ tS88X@8X.888X88888888S.::;.% X8S8X8@8@8;t;t;;;;::;::.%:::::::::::;::;:::::::;:
+ %X8X8S@@88@888888@8@8%.;::;.8X8X88X8X8X.%t;t;;:::..:.8.;::;::;::::::::;::;::::
+ @X88@8X 8888888@@@@888;:::;.  S@X8X8@@8t%;;;:::::....8.::::::::;::;:::::::::;:
+.@@8@@@88:@8@@@XXSXS8XSX.;:; 8 @88X88@8XXt;;:::......:@.:;::;::::::::;::;::;:::
+:;8@8@@X@tXX@XXXSXSXX@X :;:::@ @8@8S8X@88:;::....    :S.::::::;::;:::::::::::::
+; :S8@8S8;8X@@@8@@X@XX@@8:;; 8 8888X88XX8 :..    ....;S.:;::;::::::;::;::;::;::
+;.8X@8X888:@@8@X@@@X@XX@XX.;.8:888X8%8X8@ ..  . ...:.tX.:::::::;::::::::::::::;
+::;SX8XX88 8@X@88XXX@X88X S:. .8888%8X8S8:   ....:.:.;X.;::;:::::;::;::;::;::::
+:; 8X@8X888 8@@888@@@@X@888888X888@X8X8X8: . ..   ... S.:::::;::::::::::::::;::
+::;:tX@8X888t@@8@88888@@@X@88@8888@X8XX8X ...::;;;:;:;:t::;::::;::;::;::;:::::;
+::;.88XX8@888:8@X@88@@@888888X@888@X8X8SX.ttt;t;;;;;;:.8.:::;:::::::::::::;::::
+:::;.X@8%888@8 ;888888888888SX8888@8S8S8 :Stt;;;;;::::::@.;::::;::;::;::;:::;::
+::::;  %8X@8888@@S@88S88%t8SX8@88@X8SX8S@8;;;::::::::::..t:::;:::::::::::::::::
+::::::;%S8X88888888.XXt88X8S@@888X@X8XXX@X;;::::::.:..  :.S:::::;::;::;::;::;::
+::;::;::.S8X8888 88888@X@@@88888 88%8X@@@88.;:..  .:;ttt%SStt:::::::::::::::::;
+:::::::; .%8X888X8888888888888888XS8S8S8@88@. .::tt%%SSXXXSXS8.:;:;::;:;::;::::
+:::;::::;.%@X@@8 @88888888888888@@8S8%8X8888t t%%SSXXXXSSSSSSS.@S:::::::;::;:::
+:::::;:::;:t:8S88 @ X X8888888@@@8S8%XX8@:%@;:X%XSXSSSSSSSS%SS%SSt.;X888@888@t:
+:;:::::::::;.SS 88@888888888 8@8XXSt8SSS. :;::.%:X%%SS%%S%%%S%%%S%t%%SXXXXXS8.:
+:::;:::;::::;:.8:8X@@@@@8@888X@8@ S8%:.::;:::;:::8.%%%%%%%%%%%S%%%%%%%%ttt:%:::
+:::::::::::::::::;S@::SX@X%.t8S;:::;:::;::::::::::.t8t;%%t%%%%%%%%%%t;;t:X.;::;
+::;::;::;::;::;:::;:..     .:;;::::::;:::::;::;:::;::.:8.SS%%%%%%%%tt%t8.::::::
+::::::::::::::::::::;:;:;:;::::::;::::::;:::::::;::::::.:%8%.;%SSSS;;8;::;:::;:
+::;::;:::;::;::;::;::::::::::;:::::;::;::::;::;::::::::::;::::;S88t:.::::::;:::
+:::::::;::::::::::::::;::;:::::;::;::::::;::::::::;::;:;::::::;::;::;::;::::::;
+::; duct-tape ;:;::;:::::::;:::::::::;::::::;::;::::::::::;::::::::::::::;::;::
+::::::::;:::::::::::::;::::::;::;::;:::;::;:::::::;::;::;::::;::;::;::;::::::::
+:::;::;:::::;:::;:::;:::;::;:::::::::::::::::;::;::::::::::;:::::::::::::;::;::"
 set -e
 
 export PY_COLORS='1'
@@ -83,7 +82,7 @@ is_command(){
 }
 
 check_test_mode(){
-    spinner_text "ENV: checking for DT_TEST... " &
+    spinner_text "ENV: checking for DT_TEST" &
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
     set +e
@@ -98,7 +97,7 @@ check_test_mode(){
 }
 
 ensure_in_path(){
-    spinner_text "ENV: checking for $1 in PATH... " &
+    spinner_text "ENV: checking for $1 in PATH" &
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
     set +e
@@ -110,7 +109,7 @@ ensure_in_path(){
 }
 
 check_git_branch(){
-    spinner_text "GIT: checking branch... " &
+    spinner_text "GIT: checking branch" &
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
     set +e
@@ -130,7 +129,7 @@ check_git_branch(){
 check_apt_dependencies(){
     installArray=""
     for i in "$@"; do
-        spinner_text "${PACKAGE_MANAGER}: Checking for ${i}... " &
+        spinner_text "${PACKAGE_MANAGER}: Checking for ${i}" &
         SPIN_PID="$!"
         trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
         set +e
@@ -149,7 +148,7 @@ check_apt_dependencies(){
 install_apt_dependencies(){
     if [[ "${#installArray[@]}" -gt 0 ]]; then
         for package in $installArray; do
-            spinner_text "Processing ${PACKAGE_MANAGER} install(s) for: $package... " &
+            spinner_text "Processing ${PACKAGE_MANAGER} install(s) for: $package" &
             SPIN_PID="$!"
             trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
             set +e
@@ -167,7 +166,7 @@ install_apt_dependencies(){
 
 install_pip(){
     if [ ! -f "/tmp/get-pip.py" ]; then
-        spinner_text "Downloading pip bootstrapping script... " &
+        spinner_text "Downloading pip bootstrapping script" &
         SPIN_PID="$!"
         trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
         set +e
@@ -181,7 +180,7 @@ install_pip(){
         set -e
     fi
 
-    spinner_text "Installing pip... " &
+    spinner_text "Installing pip" &
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
     set +e
@@ -196,7 +195,7 @@ install_pip(){
 }
 
 check_pip(){
-    spinner_text "PYTHON: Checking for pip... " & 
+    spinner_text "PYTHON: Checking for pip" & 
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
     set +e
@@ -214,7 +213,7 @@ check_pip(){
 check_pip_dependencies(){
     installArray=""
     for i in "$@"; do
-        spinner_text "PIP: Checking for ${i}... " &
+        spinner_text "PIP: Checking for ${i}" &
         SPIN_PID="$!"
         trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
         set +e
@@ -233,7 +232,7 @@ check_pip_dependencies(){
 install_pip_dependencies(){
     if [[ "${#installArray[@]}" -gt 0 ]]; then
         for package in $installArray; do
-            spinner_text "PIP: Processing install(s) for: $package... " &
+            spinner_text "PIP: Processing install(s) for: $package" &
             SPIN_PID="$!"
             trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
             set +e
@@ -250,52 +249,49 @@ install_pip_dependencies(){
 }
 
 check_ansible_dependencies(){
-    if [ ! -f "$ANSIBLE_REQUIREMENT_FILE" ] || [ "$DT_TEST" ]; then
+    if [[ ! -f "$ANSIBLE_REQUIREMENT_FILE" ]] || [[ "$DT_TEST" ]]; then
         REQUIREMENT_URL="https://raw.githubusercontent.com/WhaleJ84/duct-tape/$GIT_BRANCH/requirements.yml"
-        spinner_text "ANSIBLE: Downloading requirements.yml... " &
+        # FIXME: Bug where if the text is longer than term length
+        # (e.g. [ | ] ANSIBLE: very long text... [ / ] ANSIBLE: v)
+        # and gets cut off when doubled, the spinner doesn't work
+        # as intended. Visual bug only. 39 chars max
+        spinner_text "ANSIBLE: Pulling requirements" &
         SPIN_PID="$!"
         trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
-        set +e
+        sleep 1
         if curl "$REQUIREMENT_URL" -so "$ANSIBLE_REQUIREMENT_FILE" &>/dev/null; then
             kill -9 $SPIN_PID 2>/dev/null
-            printf "%b[ %b ] ANSIBLE: Downloaded requirements.yml \\n" "${OVERWRITE}" "${SUCCESS}"
+            printf "%b[ %b ] ANSIBLE: Pulled requirements file\\n" "${OVERWRITE}" "${SUCCESS}"
         fi
         set -e
     fi
 }
 
 install_ansible_dependencies(){
-    spinner_text "ANSIBLE: Installing $GIT_BRANCH requirements... " &
+    spinner_text "ANSIBLE: Installing requirements" &
+    [ "$DT_TEST" ] && flag="--force" || flag=""
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
     set +e
-    if [ "$DT_TEST" ]; then
-        ansible-galaxy install --force -r "$ANSIBLE_REQUIREMENT_FILE" &>/dev/null 
+    if ansible-galaxy install "${flag}" -r "$ANSIBLE_REQUIREMENT_FILE" &>/dev/null; then
         kill -9 $SPIN_PID 2>/dev/null
-        printf "%b[ %b ] ANSIBLE: Installed $GIT_BRANCH requirements\\n" "${OVERWRITE}" "${SUCCESS}"
-    else
-        ansible-galaxy install -r "$ANSIBLE_REQUIREMENT_FILE" &>/dev/null &
-        kill -9 $SPIN_PID 2>/dev/null
-        printf "%b[ %b ] ANSIBLE: $GIT_BRANCH installed\\n" "${OVERWRITE}" "${SUCCESS}"
+        printf "%b[ %b ] ANSIBLE: Installed requirements\\n" "${OVERWRITE}" "${SUCCESS}"
     fi
     set -e
 }
 
 # TODO: Make keyboard interrupts kill script entirely
 [ "$(is_command apt)" ] || PACKAGE_MANAGER="apt"
-printf "%s" "$LOGO"
+printf "%s\\n" "$LOGO"
 sleep 1
 check_test_mode
 ensure_in_path "$HOME/.local/bin"
 check_git_branch
-# shellcheck disable=SC2086
 check_apt_dependencies $APT_DEPENDENCIES 
 install_apt_dependencies
 check_pip
-# shellcheck disable=SC2086
 check_pip_dependencies $PIP_DEPENDENCIES
 install_pip_dependencies
 check_ansible_dependencies
-exit 1
 install_ansible_dependencies
 ansible-pull -KU https://github.com/WhaleJ84/duct-tape.git
