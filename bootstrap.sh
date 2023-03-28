@@ -56,8 +56,8 @@ export ANSIBLE_FORCE_COLOR='1'
 
 #DETECTED_OS=$(grep '^ID=' /etc/os-release | cut -d '=' -f2 | tr -d '"')
 #DETECTED_VERSION=$(grep VERSION_ID /etc/os-release | cut -d '=' -f2 | tr -d '"')
-#APT_DEPENDENCIES="curl git python3"
-#PIP_DEPENDENCIES="ansible"
+APT_DEPENDENCIES="curl git python3"
+PIP_DEPENDENCIES="ansible"
 
 COL_NC='\e[0m'
 COL_LIGHT_GREEN='\e[1;32m'
@@ -94,6 +94,7 @@ check_test_mode(){
         kill -9 $SPIN_PID 2>/dev/null
         printf "%b[ %b ] ENV: DT_TEST not found. Running as normal\\n" "${OVERWRITE}" "${SUCCESS}"
     fi
+    set -e
 }
 
 ensure_in_path(){
@@ -251,16 +252,13 @@ install_pip_dependencies(){
 check_ansible_dependencies(){
     if [ ! -f "$ANSIBLE_REQUIREMENT_FILE" ] || [ "$DT_TEST" ]; then
         REQUIREMENT_URL="https://raw.githubusercontent.com/WhaleJ84/duct-tape/$GIT_BRANCH/requirements.yml"
-        spinner_text "ANSIBLE: Downloading $REQUIREMENT_URL... " &
+        spinner_text "ANSIBLE: Downloading requirements.yml... " &
         SPIN_PID="$!"
         trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
         set +e
-        if curl "$REQUIREMENT_URL" -s -o "$ANSIBLE_REQUIREMENT_FILE"; then
+        if curl "$REQUIREMENT_URL" -so "$ANSIBLE_REQUIREMENT_FILE" &>/dev/null; then
             kill -9 $SPIN_PID 2>/dev/null
-            printf "%b[ %b ] ANSIBLE: Downloaded $REQUIREMENT_URL\\n" "${OVERWRITE}" "${SUCCESS}"
-        else
-            kill -9 $SPIN_PID 2>/dev/null
-            printf "%b[ %b ] ANSIBLE: Downloading $REQUIREMENT_URL\\n" "${OVERWRITE}" "${FAILURE}"
+            printf "%b[ %b ] ANSIBLE: Downloaded requirements.yml \\n" "${OVERWRITE}" "${SUCCESS}"
         fi
         set -e
     fi
@@ -272,15 +270,13 @@ install_ansible_dependencies(){
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
     set +e
     if [ "$DT_TEST" ]; then
-        ansible-galaxy install --force -r "$ANSIBLE_REQUIREMENT_FILE" &>/dev/null
+        ansible-galaxy install --force -r "$ANSIBLE_REQUIREMENT_FILE" &>/dev/null 
         kill -9 $SPIN_PID 2>/dev/null
         printf "%b[ %b ] ANSIBLE: Installed $GIT_BRANCH requirements\\n" "${OVERWRITE}" "${SUCCESS}"
-    elif [ "$(ansible-galaxy install -r "$ANSIBLE_REQUIREMENT_FILE" 2>/dev/null)" ]; then
-        kill -9 $SPIN_PID 2>/dev/null
-        printf "%b[ %b ] ANSIBLE: $GIT_BRANCH Requirements already installed\\n" "${OVERWRITE}" "${SUCCESS}"
     else
+        ansible-galaxy install -r "$ANSIBLE_REQUIREMENT_FILE" &>/dev/null &
         kill -9 $SPIN_PID 2>/dev/null
-        printf "%b[ %b ] ANSIBLE: Installed $GIT_BRANCH requirements\\n" "${OVERWRITE}" "${FAILURE}"
+        printf "%b[ %b ] ANSIBLE: $GIT_BRANCH installed\\n" "${OVERWRITE}" "${SUCCESS}"
     fi
     set -e
 }
@@ -288,14 +284,18 @@ install_ansible_dependencies(){
 # TODO: Make keyboard interrupts kill script entirely
 [ "$(is_command apt)" ] || PACKAGE_MANAGER="apt"
 printf "%s" "$LOGO"
+sleep 1
 check_test_mode
 ensure_in_path "$HOME/.local/bin"
 check_git_branch
-#check_apt_dependencies $APT_DEPENDENCIES
-#install_apt_dependencies
-#check_pip
-#check_pip_dependencies $PIP_DEPENDENCIES
-#install_pip_dependencies
+# shellcheck disable=SC2086
+check_apt_dependencies $APT_DEPENDENCIES 
+install_apt_dependencies
+check_pip
+# shellcheck disable=SC2086
+check_pip_dependencies $PIP_DEPENDENCIES
+install_pip_dependencies
 check_ansible_dependencies
+exit 1
 install_ansible_dependencies
-#ansible-pull -KU https://github.com/WhaleJ84/duct-tape.git
+ansible-pull -KU https://github.com/WhaleJ84/duct-tape.git
