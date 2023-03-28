@@ -46,7 +46,7 @@ LOGO="::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 ::;::::::;::;:::;::::::::::::::::::;:::::::::::;:::::::;::..%8:tXXXS;% :;:::::::
 ::::;::::::::;:::::;::;:::;:::;:;::::;::;:;::;:::::;:::::;:::.:;S8X;::;::::;:::;
 ::::::;:::;::::;::::::::;:::;:::::;::::::::::::::;:::;::::::;:::;:;::::::;::::::
-::;:::::;::::::::;::;:::::::::::;::::;::;::;:::;:::::::;::;::::::::::::;::::;::;
+::; duct-tape :::;::;:::::::::::;::::;::;::;:::;:::::::;::;::::::::::::;::::;::;
 ::::;:::::::;::;::::::;::;:::;:::::;:::::::::;::::;::;:::::::;::;::;::::::::::::
 ::;:::;::;::::::::;::::::::;::::;:::::;::;::::::;:::::::;::;:::::::::;::;::;::;:"
 set -e
@@ -56,8 +56,8 @@ export ANSIBLE_FORCE_COLOR='1'
 
 #DETECTED_OS=$(grep '^ID=' /etc/os-release | cut -d '=' -f2 | tr -d '"')
 #DETECTED_VERSION=$(grep VERSION_ID /etc/os-release | cut -d '=' -f2 | tr -d '"')
-APT_DEPENDENCIES="curl git python3"
-PIP_DEPENDENCIES="ansible"
+#APT_DEPENDENCIES="curl git python3"
+#PIP_DEPENDENCIES="ansible"
 
 COL_NC='\e[0m'
 COL_LIGHT_GREEN='\e[1;32m'
@@ -67,7 +67,7 @@ FAILURE="${COL_LIGHT_RED}x${COL_NC}"
 OVERWRITE='\r\033[K'
 
 spinner_text(){
-    spinner='| / - \ | / - \'
+    spinner='| / - \ | / - \ '
 
     while true; do
         for pos in $spinner; do
@@ -83,65 +83,60 @@ is_command(){
 }
 
 check_test_mode(){
-    spinner_text "ENV: checking for DT_TEST..." &
+    spinner_text "ENV: checking for DT_TEST... " &
     SPIN_PID="$!"
-    trap "kill -9 $SPIN_PID" $(seq 0 15)
+    trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
     set +e
     if [ "$DT_TEST" ]; then
-        rc="$?"
         kill -9 $SPIN_PID 2>/dev/null
         printf "%b[ %b ] ENV: DT_TEST found. Running as new\\n" "${OVERWRITE}" "${SUCCESS}"
     else
-        rc="$?"
         kill -9 $SPIN_PID 2>/dev/null
         printf "%b[ %b ] ENV: DT_TEST not found. Running as normal\\n" "${OVERWRITE}" "${SUCCESS}"
     fi
 }
 
 ensure_in_path(){
-    spinner_text "ENV: $1 found in PATH..." &
+    spinner_text "ENV: checking for $1 in PATH... " &
     SPIN_PID="$!"
-    trap "kill -9 $SPIN_PID" $(seq 0 15)
+    trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
     set +e
     case ":${PATH:=$1}:" in
-        *:"$1":*) rc="$?" ; kill -9 $SPIN_PID 2>/dev/null ; printf "%b[ %b ] ENV: %s found in PATH\\n" "${OVERWRITE}" "${SUCCESS}" "$1" ;;
-        *) PATH="$1:$PATH" ; rc="$?" ; kill -9 $SPIN_PID 2>/dev/null ; printf "%b[ %b ] ENV: %s added to PATH for session\\n" "${OVERWRITE}" "${SUCCESS}" "$1" ;;
+        *:"$1":*) kill -9 $SPIN_PID 2>/dev/null ; printf "%b[ %b ] ENV: %s found in PATH\\n" "${OVERWRITE}" "${SUCCESS}" "$1" ;;
+        *) PATH="$1:$PATH" ; kill -9 $SPIN_PID 2>/dev/null ; printf "%b[ %b ] ENV: %s added to PATH for session\\n" "${OVERWRITE}" "${SUCCESS}" "$1" ;;
     esac
     set -e
 }
 
 check_git_branch(){
-    spinner_text "GIT: checking branch..." &
+    spinner_text "GIT: checking branch... " &
     SPIN_PID="$!"
-    trap "kill -9 $SPIN_PID" $(seq 0 15)
+    trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
     set +e
-    if [ $(git rev-parse --abbrev-ref HEAD 2>/dev/null) ]; then
+    if [ "$(git rev-parse --abbrev-ref HEAD 2>/dev/null)" ]; then
         GIT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
-        rc="$?"
         kill -9 $SPIN_PID 2>/dev/null
         printf "%b[ %b ] GIT: %s branch found\\n" "${OVERWRITE}" "${SUCCESS}" "$GIT_BRANCH"
     else
         GIT_BRANCH="dev"
-        rc="$?"
         kill -9 $SPIN_PID 2>/dev/null
         printf "%b[ %b ] GIT: defaulted to %s branch\\n" "${OVERWRITE}" "${SUCCESS}" "$GIT_BRANCH"
     fi
     set -e
+    ANSIBLE_REQUIREMENT_FILE="/tmp/$GIT_BRANCH-requirements.yml"
 }
 
 check_apt_dependencies(){
     installArray=""
     for i in "$@"; do
-        spinner_text "${PACKAGE_MANAGER}: Checking for ${i}..." &
+        spinner_text "${PACKAGE_MANAGER}: Checking for ${i}... " &
         SPIN_PID="$!"
-        trap "kill -9 $SPIN_PID" $(seq 0 15)
+        trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
         set +e
         if dpkg-query -W -f='${Status}' "${i}" 2>/dev/null | grep "ok installed" &>/dev/null; then
-            rc="$?"
             kill -9 $SPIN_PID 2>/dev/null
             printf "%b[ %b ] APT: Checked for %s\\n" "${OVERWRITE}" "${SUCCESS}" "${i}"
         else
-            rc="$?"
             kill -9 $SPIN_PID 2>/dev/null
             printf "%b[ %b ] APT: Checked for %s (will be installed)\\n" "${OVERWRITE}" "${FAILURE}" "${i}"
             installArray="$installArray$i "
@@ -153,16 +148,14 @@ check_apt_dependencies(){
 install_apt_dependencies(){
     if [[ "${#installArray[@]}" -gt 0 ]]; then
         for package in $installArray; do
-            spinner_text "Processing ${PACKAGE_MANAGER} install(s) for: $package..." &
+            spinner_text "Processing ${PACKAGE_MANAGER} install(s) for: $package... " &
             SPIN_PID="$!"
-            trap "kill -9 $SPIN_PID" $(seq 0 15)
+            trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
             set +e
             if "${PACKAGE_MANAGER}" install -y "$package" &>/dev/null; then
-                rc="$?"
                 kill -9 $SPIN_PID 2>/dev/null
                 printf "%b[ %b ] Processed ${PACKAGE_MANAGER} install(s) for: %s\\n" "${OVERWRITE}" "${SUCCESS}" "$package"
             else
-                rc="$?"
                 kill -9 $SPIN_PID 2>/dev/null
                 printf "%b[ %b ] Processed ${PACKAGE_MANAGER} install(s) for: %s\\n" "${OVERWRITE}" "${FAILURE}" "$package"
             fi
@@ -173,32 +166,28 @@ install_apt_dependencies(){
 
 install_pip(){
     if [ ! -f "/tmp/get-pip.py" ]; then
-        spinner_text "Downloading pip bootstrapping script..." &
+        spinner_text "Downloading pip bootstrapping script... " &
         SPIN_PID="$!"
-        trap "kill -9 $SPIN_PID" $(seq 0 15)
+        trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
         set +e
         if curl https://bootstrap.pypa.io/get-pip.py -s -o /tmp/get-pip.py; then
-            rc="$?"
             kill -9 $SPIN_PID 2>/dev/null
             printf "%b[ %b ] Downloaded pip bootstrapping script\\n" "${OVERWRITE}" "${SUCCESS}"
         else
-            rc="$?"
             kill -9 $SPIN_PID 2>/dev/null
             printf "%b[ %b ] Downloading pip bootstrapping script\\n" "${OVERWRITE}" "${FAILURE}"
         fi
         set -e
     fi
 
-    spinner_text "Installing pip..." &
+    spinner_text "Installing pip... " &
     SPIN_PID="$!"
-    trap "kill -9 $SPIN_PID" $(seq 0 15)
+    trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
     set +e
     if python3 /tmp/get-pip.py --user &>/dev/null; then
-        rc="$?"
         kill -9 $SPIN_PID 2>/dev/null
         printf "%b[ %b ] Installed pip\\n" "${OVERWRITE}" "${SUCCESS}"
     else
-        rc="$?"
         kill -9 $SPIN_PID 2>/dev/null
         printf "%b[ %b ] Installing pip\\n" "${OVERWRITE}" "${FAILURE}"
     fi
@@ -206,16 +195,14 @@ install_pip(){
 }
 
 check_pip(){
-    spinner_text "PYTHON: Checking for pip..." & 
+    spinner_text "PYTHON: Checking for pip... " & 
     SPIN_PID="$!"
-    trap "kill -9 $SPIN_PID" $(seq 0 15)
+    trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
     set +e
     if python3 -m pip -V 2&>/dev/null; then 
-        rc="$?"
         kill -9 $SPIN_PID 2>/dev/null
         printf "%b[ %b ] PYTHON: Checked for pip\\n" "${OVERWRITE}" "${SUCCESS}"
     else
-        rc="$?"
         kill -9 $SPIN_PID 2>/dev/null
         printf "%b[ %b ] PYTHON: Checked for pip (will be installed)\\n" "${OVERWRITE}" "${FAILURE}"
         install_pip
@@ -226,16 +213,14 @@ check_pip(){
 check_pip_dependencies(){
     installArray=""
     for i in "$@"; do
-        spinner_text "PIP: Checking for ${i}..." &
+        spinner_text "PIP: Checking for ${i}... " &
         SPIN_PID="$!"
-        trap "kill -9 $SPIN_PID" $(seq 0 15)
+        trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
         set +e
         if python3 -m pip list | grep "$i " &>/dev/null; then
-            rc="$?"
             kill -9 $SPIN_PID 2>/dev/null
             printf "%b[ %b ] PIP: Checked for %s\\n" "${OVERWRITE}" "${SUCCESS}" "${i}"
         else
-            rc="$?"
             kill -9 $SPIN_PID 2>/dev/null
             printf "%b[ %b ] PIP: Checked for %s (will be installed)\\n" "${OVERWRITE}" "${FAILURE}" "${i}"
             installArray="$installArray$i "
@@ -247,16 +232,14 @@ check_pip_dependencies(){
 install_pip_dependencies(){
     if [[ "${#installArray[@]}" -gt 0 ]]; then
         for package in $installArray; do
-            spinner_text "PIP: Processing install(s) for: $package..." &
+            spinner_text "PIP: Processing install(s) for: $package... " &
             SPIN_PID="$!"
-            trap "kill -9 $SPIN_PID" $(seq 0 15)
+            trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
             set +e
             if python3 -m pip install --user "$package" &>/dev/null; then
-                rc="$?"
                 kill -9 $SPIN_PID 2>/dev/null
                 printf "%b[ %b ] PIP: Processed install(s) for: %s\\n" "${OVERWRITE}" "${SUCCESS}" "$package"
             else
-                rc="$?"
                 kill -9 $SPIN_PID 2>/dev/null
                 printf "%b[ %b ] PIP: Processed install(s) for: %s\\n" "${OVERWRITE}" "${FAILURE}" "$package"
             fi
@@ -265,44 +248,37 @@ install_pip_dependencies(){
     fi
 }
 
-install_ansible_dependencies(){
-    # FIXME: Bug with the spinner for this function.
-    # Detected in fresh install on test machine
-    # Also detected when ran in small terminal
-    REQUIREMENT_FILE="/tmp/$GIT_BRANCH-requirements.yml"
-    if [ ! -f "$REQUIREMENT_FILE" ] || [ "$DT_TEST" ]; then
+check_ansible_dependencies(){
+    if [ ! -f "$ANSIBLE_REQUIREMENT_FILE" ] || [ "$DT_TEST" ]; then
         REQUIREMENT_URL="https://raw.githubusercontent.com/WhaleJ84/duct-tape/$GIT_BRANCH/requirements.yml"
-        spinner_text "ANSIBLE: Downloading $REQUIREMENT_URL..." &
+        spinner_text "ANSIBLE: Downloading $REQUIREMENT_URL... " &
         SPIN_PID="$!"
-        trap "kill -9 $SPIN_PID" $(seq 0 15)
+        trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
         set +e
-        if curl "$REQUIREMENT_URL" -s -o "$REQUIREMENT_FILE"; then
-            rc="$?"
+        if curl "$REQUIREMENT_URL" -s -o "$ANSIBLE_REQUIREMENT_FILE"; then
             kill -9 $SPIN_PID 2>/dev/null
             printf "%b[ %b ] ANSIBLE: Downloaded $REQUIREMENT_URL\\n" "${OVERWRITE}" "${SUCCESS}"
         else
-            rc="$?"
             kill -9 $SPIN_PID 2>/dev/null
             printf "%b[ %b ] ANSIBLE: Downloading $REQUIREMENT_URL\\n" "${OVERWRITE}" "${FAILURE}"
         fi
         set -e
     fi
+}
 
-    spinner_text "ANSIBLE: Installing $GIT_BRANCH requirements..." &
+install_ansible_dependencies(){
+    spinner_text "ANSIBLE: Installing $GIT_BRANCH requirements... " &
     SPIN_PID="$!"
-    trap "kill -9 $SPIN_PID" $(seq 0 15)
+    trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
     set +e
     if [ "$DT_TEST" ]; then
-        ansible-galaxy install --force -r "$REQUIREMENT_FILE" &>/dev/null
-        rc="$?"
+        ansible-galaxy install --force -r "$ANSIBLE_REQUIREMENT_FILE" &>/dev/null
         kill -9 $SPIN_PID 2>/dev/null
         printf "%b[ %b ] ANSIBLE: Installed $GIT_BRANCH requirements\\n" "${OVERWRITE}" "${SUCCESS}"
-    elif ansible-galaxy install -r "$REQUIREMENT_FILE" &>/dev/null; then
-        rc="$?"
+    elif [ "$(ansible-galaxy install -r "$ANSIBLE_REQUIREMENT_FILE" 2>/dev/null)" ]; then
         kill -9 $SPIN_PID 2>/dev/null
         printf "%b[ %b ] ANSIBLE: $GIT_BRANCH Requirements already installed\\n" "${OVERWRITE}" "${SUCCESS}"
     else
-        rc="$?"
         kill -9 $SPIN_PID 2>/dev/null
         printf "%b[ %b ] ANSIBLE: Installed $GIT_BRANCH requirements\\n" "${OVERWRITE}" "${FAILURE}"
     fi
@@ -315,10 +291,11 @@ printf "%s" "$LOGO"
 check_test_mode
 ensure_in_path "$HOME/.local/bin"
 check_git_branch
-check_apt_dependencies $APT_DEPENDENCIES
-install_apt_dependencies
-check_pip
-check_pip_dependencies $PIP_DEPENDENCIES
-install_pip_dependencies
+#check_apt_dependencies $APT_DEPENDENCIES
+#install_apt_dependencies
+#check_pip
+#check_pip_dependencies $PIP_DEPENDENCIES
+#install_pip_dependencies
+check_ansible_dependencies
 install_ansible_dependencies
-ansible-pull -KU https://github.com/WhaleJ84/duct-tape.git
+#ansible-pull -KU https://github.com/WhaleJ84/duct-tape.git
