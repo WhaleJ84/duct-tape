@@ -28,3 +28,7 @@
         include_btrfs_home_for_restore: "true"
 
     - role: whalej84.timeshift-autosnap-apt
+      vars:
+        autosnap_repo_dir: "/home/james/Downloads/repositories"
+        snapshot_boot: "false"
+        update_grub: "false"
