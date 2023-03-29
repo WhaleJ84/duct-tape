@@ -272,6 +272,7 @@ install_ansible_dependencies(){
     [ "$DT_TEST" ] && flag="--force" || flag=""
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
+    mkdir -p "$HOME/.ansible/roles"
     set +e
     if ansible-galaxy install "${flag}" -r "$ANSIBLE_REQUIREMENT_FILE" &>/dev/null; then
         kill -9 $SPIN_PID 2>/dev/null
