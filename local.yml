@@ -38,3 +38,5 @@
     - role: whalej84.pyenv
       vars:
         pyenv_repo_dir: "{{ repo_dir }}"
+
+    - role: whalej84.nftables
