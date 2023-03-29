@@ -14,7 +14,7 @@
   roles:
     - role: whalej84.timeshift
       vars:
-        location_mount: "/media/james/storage"
+        location_mount: "/"
         do_first_run: "false"
         schedule_monthly: "true"
         schedule_weekly: "true"
