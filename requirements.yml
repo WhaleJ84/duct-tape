@@ -16,6 +16,10 @@ roles:
     src: https://github.com/WhaleJ84/ansible-role-pyenv.git
     scm: git
 
+  - name: whalej84.nftables
+    src: https://github.com/WhaleJ84/ansible-role-nftables.git
+    scm: git
+
 collections:
   - community.general
 
