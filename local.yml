@@ -3,6 +3,9 @@
   connection: local
   gather_facts: true
 
+  vars:
+    user: "james"
+
   pre_tasks:
     - name: update apt repositories
       apt:
@@ -14,6 +17,7 @@
   roles:
     - role: whalej84.timeshift
       vars:
+        remove_gui_password_prompt: "true"
         location_mount: "/"
         do_first_run: "false"
         schedule_monthly: "true"
