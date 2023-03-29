@@ -32,3 +32,4 @@
         autosnap_repo_dir: "/home/james/Downloads/repositories"
         snapshot_boot: "false"
         update_grub: "false"
+        snapshot_description: "{created before call to APT}"
