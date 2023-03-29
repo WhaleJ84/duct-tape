@@ -276,6 +276,9 @@ install_ansible_dependencies(){
     if ansible-galaxy install ${flag} -r "$ANSIBLE_REQUIREMENT_FILE" &>/dev/null; then
         kill -9 $SPIN_PID 2>/dev/null
         printf "%b[ %b ] ANSIBLE: Installed requirements\\n" "${OVERWRITE}" "${SUCCESS}"
+    else
+        kill -9 $SPIN_PID 2>/dev/null
+        printf "%b[ %b ] ANSIBLE: Something failed!\\n" "${OVERWRITE}" "${FAILURE}"
     fi
     set -e
 }
