@@ -5,6 +5,7 @@
 
   vars:
     user: "james"
+    repo_dir: "/home/james/Downloads/repositories"
 
   pre_tasks:
     - name: update apt repositories
@@ -29,7 +30,11 @@
 
     - role: whalej84.timeshift-autosnap-apt
       vars:
-        autosnap_repo_dir: "/home/james/Downloads/repositories"
+        autosnap_repo_dir: "{{ repo_dir }}"
         snapshot_boot: "false"
         update_grub: "false"
         snapshot_description: "{created before call to APT}"
+
+    - role: whalej84.pyenv
+      vars:
+        pyenv_repo_dir: "{{ repo_dir }}"

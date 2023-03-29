@@ -12,5 +12,9 @@ roles:
     src: https://github.com/WhaleJ84/ansible-role-timeshift-autosnap-apt.git
     scm: git
 
+  - name: whale84.pyenv
+    src: https://github.com/WhaleJ84/ansible-role-pyenv.git
+    scm: git
+
 collections:
   - community.general
