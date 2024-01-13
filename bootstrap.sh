@@ -55,7 +55,7 @@ export ANSIBLE_FORCE_COLOR='1'
 
 #DETECTED_OS=$(grep '^ID=' /etc/os-release | cut -d '=' -f2 | tr -d '"')
 #DETECTED_VERSION=$(grep VERSION_ID /etc/os-release | cut -d '=' -f2 | tr -d '"')
-APT_DEPENDENCIES="curl git python3"
+APT_DEPENDENCIES="curl git python3 python3-pip python3-venv"
 PIP_DEPENDENCIES="ansible"
 
 COL_NC='\e[0m'
