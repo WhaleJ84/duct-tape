@@ -19,7 +19,7 @@ To initiate the installation process, run the bootstrapping script with one of t
 
 ```shell
 # remotely
-curl -s https://raw.githubusercontent.com/WhaleJ84/duct-tape/dev/bootstrap.sh | bash
+curl -s https://raw.githubusercontent.com/WhaleJ84/duct-tape/dev/bootstrap.sh | sudo bash
 
 # locally
 ./PATH/TO/bootstrap.sh
