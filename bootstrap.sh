@@ -55,8 +55,10 @@ export ANSIBLE_FORCE_COLOR='1'
 
 #DETECTED_OS=$(grep '^ID=' /etc/os-release | cut -d '=' -f2 | tr -d '"')
 #DETECTED_VERSION=$(grep VERSION_ID /etc/os-release | cut -d '=' -f2 | tr -d '"')
-APT_DEPENDENCIES="curl git python3 python3-pip python3-venv"
+PYENV_DEPENENCIES="build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev"
+APT_DEPENDENCIES="$PYENV_DEPENENCIES  python3 python3-virtualenv"
 PIP_DEPENDENCIES="ansible"
+ANSIBLE_PATH="$HOME/.local/bin"
 
 COL_NC='\e[0m'
 COL_LIGHT_GREEN='\e[1;32m'
@@ -288,7 +290,7 @@ install_ansible_dependencies(){
 printf "%s\\n" "$LOGO"
 sleep 1
 check_test_mode
-ensure_in_path "$HOME/.local/bin"
+ensure_in_path "$ANSIBLE_PATH"
 check_git_branch
 check_apt_dependencies $APT_DEPENDENCIES 
 install_apt_dependencies
@@ -297,4 +299,4 @@ check_pip_dependencies $PIP_DEPENDENCIES
 install_pip_dependencies
 check_ansible_dependencies
 install_ansible_dependencies
-ansible-pull -KU https://github.com/WhaleJ84/duct-tape.git
+#ansible-pull -KU https://github.com/WhaleJ84/duct-tape.git
