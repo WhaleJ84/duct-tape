@@ -16,27 +16,27 @@
       changed_when: false
 
   roles:
-    - role: whalej84.timeshift
-      vars:
-        remove_gui_password_prompt: "true"
-        location_mount: "/"
-        do_first_run: "false"
-        schedule_monthly: "true"
-        schedule_weekly: "true"
-        schedule_daily: "true"
-        schedule_boot: "true"
-        include_btrfs_home_for_backup: "true"
-        include_btrfs_home_for_restore: "true"
-
-    - role: whalej84.timeshift-autosnap-apt
-      vars:
-        autosnap_repo_dir: "{{ repo_dir }}"
-        snapshot_boot: "false"
-        update_grub: "false"
-        snapshot_description: "{created before call to APT}"
-
-    - role: whalej84.pyenv
-      vars:
-        pyenv_repo_dir: "{{ repo_dir }}"
+    #    - role: whalej84.timeshift
+    #      vars:
+    #        remove_gui_password_prompt: "true"
+    #        location_mount: "/"
+    #        do_first_run: "false"
+    #        schedule_monthly: "true"
+    #        schedule_weekly: "true"
+    #        schedule_daily: "true"
+    #        schedule_boot: "true"
+    #        include_btrfs_home_for_backup: "true"
+    #        include_btrfs_home_for_restore: "true"
+    #
+    #    - role: whalej84.timeshift-autosnap-apt
+    #      vars:
+    #        autosnap_repo_dir: "{{ repo_dir }}"
+    #        snapshot_boot: "false"
+    #        update_grub: "false"
+    #        snapshot_description: "{created before call to APT}"
+    #
+    #    - role: whalej84.pyenv
+    #      vars:
+    #        pyenv_repo_dir: "{{ repo_dir }}"
 
     - role: whalej84.nftables
