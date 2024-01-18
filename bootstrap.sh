@@ -55,7 +55,7 @@ export ANSIBLE_FORCE_COLOR='1'
 
 #DETECTED_OS=$(grep '^ID=' /etc/os-release | cut -d '=' -f2 | tr -d '"')
 #DETECTED_VERSION=$(grep VERSION_ID /etc/os-release | cut -d '=' -f2 | tr -d '"')
-PYENV_DEPENENCIES="build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev"
+PYENV_DEPENENCIES="build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev libncurses-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev"
 APT_DEPENDENCIES="$PYENV_DEPENENCIES  python3 python3-virtualenv"
 PIP_DEPENDENCIES="ansible"
 ANSIBLE_PATH="$HOME/.local/bin"
