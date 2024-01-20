@@ -56,7 +56,7 @@ export ANSIBLE_FORCE_COLOR='1'
 #DETECTED_OS=$(grep '^ID=' /etc/os-release | cut -d '=' -f2 | tr -d '"')
 #DETECTED_VERSION=$(grep VERSION_ID /etc/os-release | cut -d '=' -f2 | tr -d '"')
 PYENV_DEPENENCIES="build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev libncurses-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev"
-APT_DEPENDENCIES="$PYENV_DEPENENCIES  python3"
+APT_DEPENDENCIES="$PYENV_DEPENENCIES git python3"
 PIP_DEPENDENCIES="ansible"
 ANSIBLE_PATH="$HOME/.local/bin"
 
@@ -125,12 +125,59 @@ check_apt_dependencies(){
             printf "%b[ %b ] APT: Checked for %s\\n" "${OVERWRITE}" "${SUCCESS}" "${i}"
         else
             kill -9 $SPIN_PID 2>/dev/null
-            printf "%b[ %b ] APT: Checked for %s (will be installed)\\n" "${OVERWRITE}" "${FAILURE}" "${i}"
-            installArray="$installArray$i "
-            [ $DRY_RUN == 0 ] && install_apt_dependencies
+            if [ "$DRY_RUN" == 0 ]; then
+                printf "%b[ %b ] APT: Checked for %s (will be installed)\\n" "${OVERWRITE}" "${FAILURE}" "${i}"
+                installArray="$installArray$i "
+                install_apt_dependencies
+            else
+                printf "%b[ %b ] APT: Checked for %s (skipped from dry run)\\n" "${OVERWRITE}" "${SUCCESS}" "${i}"
+            fi
         fi
         set -e
     done
+}
+
+install_pyenv(){
+    mkdir -p "$HOME/opt/"
+    export PYENV_ROOT="$HOME/opt/pyenv"
+    spinner_text "PYENV: installing pyenv" &
+    SPIN_PID="$!"
+    trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
+    set +e
+    curl -s https://pyenv.run | bash 2>/dev/null
+    kill -9 $SPIN_PID 2>/dev/null
+    spinner_text "PYENV: installed pyenv (checking binary)" &
+    SPIN_PID="$!"
+    trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
+    if [ "$(find $HOME/opt/pyenv/bin -name pyenv 2>/dev/null)" ]; then
+        kill -9 $SPIN_PID 2>/dev/null
+        printf "%b[ %b ] PYENV: installed pyenv (binary found)\\n" "${OVERWRITE}" "${SUCCESS}"
+    else
+        kill -9 $SPIN_PID 2>/dev/null
+        printf "%b[ %b ] PYENV: installed pyenv (removing directory)\\n" "${OVERWRITE}" "${FAILURE}"
+        rm -rf "$PYENV_ROOT"
+    fi
+    set -e
+}
+
+check_pyenv(){
+    spinner_text "PYENV: checking for pyenv" &
+    SPIN_PID="$!"
+    trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
+    set +e
+    if [ "$(find $HOME/opt/pyenv/bin -name pyenv 2>/dev/null)" ]; then
+        kill -9 $SPIN_PID 2>/dev/null
+        printf "%b[ %b ] PYENV: checked for pyenv\\n" "${OVERWRITE}" "${SUCCESS}"
+    else
+        kill -9 $SPIN_PID 2>/dev/null
+        if [ "$DRY_RUN" == 0 ]; then
+            printf "%b[ %b ] PYENV: checked for pyenv (will be installed)\\n" "${OVERWRITE}" "${FAILURE}"
+            install_pyenv
+        else
+            printf "%b[ %b ] PYENV: checked for pyenv (skipped from dry run)\\n" "${OVERWRITE}" "${SUCCESS}"
+        fi
+    fi
+    set -e
 }
 
 is_command(){
@@ -300,6 +347,13 @@ done
 printf "%s\\n" "$LOGO"
 sleep 1
 [ $DRY_RUN == 1 ] && printf "[ DRY RUN ] Running in dry run mode.             No modifications will be made.\\n"
+#
+# Ensure that all the relevant apt dependencies are installed
+check_apt_dependencies $APT_DEPENDENCIES 
+
+# Ensure pyenv is installed
+check_pyenv
+exit 0
 
 # Make sure to look for Ansible in it's correct place 
 # TODO: Find out why this is placed here
@@ -307,9 +361,6 @@ ensure_in_path "$ANSIBLE_PATH"
 
 # Determine which Duct-tape git branch to pull ansible requirements from
 check_git_branch
-
-# Ensure that all the relevant apt dependencies are installed
-check_apt_dependencies $APT_DEPENDENCIES 
 
 # NOTE: This will be changed to check for pyenv and its addons
 check_pip
