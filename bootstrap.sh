@@ -66,6 +66,7 @@ COL_LIGHT_RED='\e[1;31m'
 SUCCESS="${COL_LIGHT_GREEN}*${COL_NC}"
 FAILURE="${COL_LIGHT_RED}x${COL_NC}"
 OVERWRITE='\r\033[K'
+DRY_RUN=0
 
 usage(){
     cat << EOF
@@ -93,23 +94,47 @@ spinner_text(){
     done
 }
 
-is_command(){
-    command -v "$1" > /dev/null 2>&1
+install_apt_dependencies(){
+    if [[ "${#installArray[@]}" -gt 0 ]]; then
+        for package in $installArray; do
+            spinner_text "Processing ${PACKAGE_MANAGER} install(s) for: $package" &
+            SPIN_PID="$!"
+            trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
+            set +e
+            if "${PACKAGE_MANAGER}" install -y "$package" &>/dev/null; then
+                kill -9 $SPIN_PID 2>/dev/null
+                printf "%b[ %b ] Processed ${PACKAGE_MANAGER} install(s) for: %s\\n" "${OVERWRITE}" "${SUCCESS}" "$package"
+            else
+                kill -9 $SPIN_PID 2>/dev/null
+                printf "%b[ %b ] Processed ${PACKAGE_MANAGER} install(s) for: %s\\n" "${OVERWRITE}" "${FAILURE}" "$package"
+            fi
+            set -e
+        done
+    fi
 }
 
-check_test_mode(){
-    spinner_text "ENV: checking for DT_TEST" &
-    SPIN_PID="$!"
-    trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
-    set +e
-    if [ "$DT_TEST" ]; then
-        kill -9 $SPIN_PID 2>/dev/null
-        printf "%b[ %b ] ENV: DT_TEST found. Running as new\\n" "${OVERWRITE}" "${SUCCESS}"
-    else
-        kill -9 $SPIN_PID 2>/dev/null
-        printf "%b[ %b ] ENV: DT_TEST not found. Running as normal\\n" "${OVERWRITE}" "${SUCCESS}"
-    fi
-    set -e
+check_apt_dependencies(){
+    installArray=""
+    for i in "$@"; do
+        spinner_text "${PACKAGE_MANAGER}: Checking for ${i}" &
+        SPIN_PID="$!"
+        trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
+        set +e
+        if dpkg-query -W -f='${Status}' "${i}" 2>/dev/null | grep "ok installed" &>/dev/null; then
+            kill -9 $SPIN_PID 2>/dev/null
+            printf "%b[ %b ] APT: Checked for %s\\n" "${OVERWRITE}" "${SUCCESS}" "${i}"
+        else
+            kill -9 $SPIN_PID 2>/dev/null
+            printf "%b[ %b ] APT: Checked for %s (will be installed)\\n" "${OVERWRITE}" "${FAILURE}" "${i}"
+            installArray="$installArray$i "
+            [ $DRY_RUN == 0 ] && install_apt_dependencies
+        fi
+        set -e
+    done
+}
+
+is_command(){
+    command -v "$1" > /dev/null 2>&1
 }
 
 ensure_in_path(){
@@ -140,44 +165,6 @@ check_git_branch(){
     fi
     set -e
     ANSIBLE_REQUIREMENT_FILE="/tmp/$GIT_BRANCH-requirements.yml"
-}
-
-check_apt_dependencies(){
-    installArray=""
-    for i in "$@"; do
-        spinner_text "${PACKAGE_MANAGER}: Checking for ${i}" &
-        SPIN_PID="$!"
-        trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
-        set +e
-        if dpkg-query -W -f='${Status}' "${i}" 2>/dev/null | grep "ok installed" &>/dev/null; then
-            kill -9 $SPIN_PID 2>/dev/null
-            printf "%b[ %b ] APT: Checked for %s\\n" "${OVERWRITE}" "${SUCCESS}" "${i}"
-        else
-            kill -9 $SPIN_PID 2>/dev/null
-            printf "%b[ %b ] APT: Checked for %s (will be installed)\\n" "${OVERWRITE}" "${FAILURE}" "${i}"
-            installArray="$installArray$i "
-        fi
-        set -e
-    done
-}
-
-install_apt_dependencies(){
-    if [[ "${#installArray[@]}" -gt 0 ]]; then
-        for package in $installArray; do
-            spinner_text "Processing ${PACKAGE_MANAGER} install(s) for: $package" &
-            SPIN_PID="$!"
-            trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
-            set +e
-            if "${PACKAGE_MANAGER}" install -y "$package" &>/dev/null; then
-                kill -9 $SPIN_PID 2>/dev/null
-                printf "%b[ %b ] Processed ${PACKAGE_MANAGER} install(s) for: %s\\n" "${OVERWRITE}" "${SUCCESS}" "$package"
-            else
-                kill -9 $SPIN_PID 2>/dev/null
-                printf "%b[ %b ] Processed ${PACKAGE_MANAGER} install(s) for: %s\\n" "${OVERWRITE}" "${FAILURE}" "$package"
-            fi
-            set -e
-        done
-    fi
 }
 
 install_pip(){
@@ -312,8 +299,7 @@ done
 [ "$(is_command apt)" ] || PACKAGE_MANAGER="apt"
 printf "%s\\n" "$LOGO"
 sleep 1
-# If test mode is enabled, only check, do not install
-check_test_mode
+[ $DRY_RUN == 1 ] && printf "[ DRY RUN ] Running in dry run mode.             No modifications will be made.\\n"
 
 # Make sure to look for Ansible in it's correct place 
 # TODO: Find out why this is placed here
@@ -324,7 +310,6 @@ check_git_branch
 
 # Ensure that all the relevant apt dependencies are installed
 check_apt_dependencies $APT_DEPENDENCIES 
-install_apt_dependencies
 
 # NOTE: This will be changed to check for pyenv and its addons
 check_pip
