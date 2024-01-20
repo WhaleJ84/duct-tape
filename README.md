@@ -26,6 +26,9 @@ curl -s https://raw.githubusercontent.com/WhaleJ84/duct-tape/dev/bootstrap.sh | 
 
 # simulate curl locally
 curl -s file:///PATH/TO/bootstrap.sh | bash
+
+# to pass arguments to the script (e.g. `-h`)
+curl -s file:///PATH/TO/bootstrap.sh | bash -s - -h
 ```
 
 When testing ansible locally, the bootstrap will only pull from the remote repository.
