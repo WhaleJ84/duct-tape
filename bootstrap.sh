@@ -180,10 +180,6 @@ check_pyenv(){
     set -e
 }
 
-is_command(){
-    command -v "$1" > /dev/null 2>&1
-}
-
 ensure_in_path(){
     spinner_text "ENV: checking for $1 in PATH" &
     SPIN_PID="$!"
@@ -343,7 +339,7 @@ done
 
 # TODO: Make keyboard interrupts kill script entirely
 # TODO: Put install tasks inside check tasks and only run them if not in test mode
-[ "$(is_command apt)" ] || PACKAGE_MANAGER="apt"
+[ "$(which apt 2>/dev/null)" ] || PACKAGE_MANAGER="apt"
 printf "%s\\n" "$LOGO"
 sleep 1
 [ $DRY_RUN == 1 ] && printf "[ DRY RUN ] Running in dry run mode.             No modifications will be made.\\n"
@@ -353,7 +349,6 @@ check_apt_dependencies $APT_DEPENDENCIES
 
 # Ensure pyenv is installed
 check_pyenv
-exit 0
 
 # Make sure to look for Ansible in it's correct place 
 # TODO: Find out why this is placed here
