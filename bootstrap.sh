@@ -56,7 +56,7 @@ export ANSIBLE_FORCE_COLOR='1'
 #DETECTED_OS=$(grep '^ID=' /etc/os-release | cut -d '=' -f2 | tr -d '"')
 #DETECTED_VERSION=$(grep VERSION_ID /etc/os-release | cut -d '=' -f2 | tr -d '"')
 PYENV_DEPENENCIES="build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev libncurses-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev"
-APT_DEPENDENCIES="$PYENV_DEPENENCIES  python3 python3-virtualenv"
+APT_DEPENDENCIES="$PYENV_DEPENENCIES  python3"
 PIP_DEPENDENCIES="ansible"
 ANSIBLE_PATH="$HOME/.local/bin"
 
@@ -66,6 +66,20 @@ COL_LIGHT_RED='\e[1;31m'
 SUCCESS="${COL_LIGHT_GREEN}*${COL_NC}"
 FAILURE="${COL_LIGHT_RED}x${COL_NC}"
 OVERWRITE='\r\033[K'
+
+usage(){
+    cat << EOF
+Usage: duct-tape [OPTION]
+Installs the relevant requirements to get Ansible installed on the system
+and pull down desired runbooks from Git repository.
+
+OPTIONS:
+    -d      Perform dry run. Do not make any modifications
+    -h      Display this message and exit
+EOF
+    exit 0
+}
+
 
 spinner_text(){
     spinner='| / - \ | / - \ '
@@ -285,18 +299,43 @@ install_ansible_dependencies(){
     set -e
 }
 
+while getopts dh arg; do
+    case "$arg" in
+        d) DRY_RUN=1 ;;
+        h) usage ;;
+        ?) usage ;;
+    esac
+done
+
 # TODO: Make keyboard interrupts kill script entirely
+# TODO: Put install tasks inside check tasks and only run them if not in test mode
 [ "$(is_command apt)" ] || PACKAGE_MANAGER="apt"
 printf "%s\\n" "$LOGO"
 sleep 1
+# If test mode is enabled, only check, do not install
 check_test_mode
+
+# Make sure to look for Ansible in it's correct place 
+# TODO: Find out why this is placed here
 ensure_in_path "$ANSIBLE_PATH"
+
+# Determine which Duct-tape git branch to pull ansible requirements from
 check_git_branch
+
+# Ensure that all the relevant apt dependencies are installed
 check_apt_dependencies $APT_DEPENDENCIES 
 install_apt_dependencies
+
+# NOTE: This will be changed to check for pyenv and its addons
 check_pip
+
+# Ensure the relevant pip dependencies are installed
 check_pip_dependencies $PIP_DEPENDENCIES
 install_pip_dependencies
+
+# Ensire the relevant ansible dependencies are installed
 check_ansible_dependencies
 install_ansible_dependencies
+
+# TODO: Make this only run when not in test mode
 #ansible-pull -KU https://github.com/WhaleJ84/duct-tape.git
