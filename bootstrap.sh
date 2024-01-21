@@ -151,7 +151,19 @@ install_pyenv(){
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
     if [ "$(find $HOME/opt/pyenv/bin -name pyenv 2>/dev/null)" ]; then
         kill -9 $SPIN_PID 2>/dev/null
-        printf "%b[ %b ] PYENV: installed pyenv (binary found)\\n" "${OVERWRITE}" "${SUCCESS}"
+        printf "%b[ %b ] PYENV: installed pyenv (binary found)" "${OVERWRITE}" "${SUCCESS}"
+        sleep 1
+        spinner_text "PYENV: installed pyenv (checking PATH)" &
+        SPIN_PID="$!"
+        trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
+        if [ $(echo $PATH | grep "$HOME/opt/pyenv/bin" 2>/dev/null) ]; then
+            kill -9 $SPIN_PID 2>/dev/null
+            printf "%b[ %b ] PYENV: installed pyenv (found in PATH)" "${OVERWRITE}" "${SUCCESS}"
+        else
+            kill -9 $SPIN_PID 2>/dev/null
+            echo "export PATH=$(find $HOME/opt -maxdepth 2 -type d -name 'bin' | tr '\n' ':'):$PATH" >> "$HOME/.profile"
+            printf "%b[ %b ] PYENV: installed pyenv (found in PATH)" "${OVERWRITE}" "${SUCCESS}"
+        fi
     else
         kill -9 $SPIN_PID 2>/dev/null
         printf "%b[ %b ] PYENV: installed pyenv (removing directory)\\n" "${OVERWRITE}" "${FAILURE}"
@@ -165,7 +177,7 @@ check_pyenv(){
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
     set +e
-    if [ "$(find $HOME/opt/pyenv/bin -name pyenv 2>/dev/null)" ]; then
+    if [ "$(which pyenv 2>/dev/null)" ]; then
         kill -9 $SPIN_PID 2>/dev/null
         printf "%b[ %b ] PYENV: checked for pyenv\\n" "${OVERWRITE}" "${SUCCESS}"
     else
