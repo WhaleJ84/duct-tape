@@ -106,21 +106,21 @@ install_apt_dependencies(){
     # Displays a message reflecting installation outcome.
     if [[ "${#installArray[@]}" -gt 0 ]]; then
         for package in $installArray; do
-            spinner_text "APT: Processing apt install(s) for: $package" &
+            spinner_text "APT: Installing apt install(s) for: $package" &
             SPIN_PID="$!"
             trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
             set +e
             if [ "$DRY_RUN" == 0 ]; then  # if application running without `-d` flag
                 if apt install -y "$package" &>/dev/null; then  # if package installs correctly
                     kill -9 $SPIN_PID 2>/dev/null
-                    printf "%b[ %b ] APT: Processed apt install(s) for: %s\\n" "${OVERWRITE}" "${SUCCESS}" "$package"
+                    printf "%b[ %b ] APT: Installed apt install(s) for: %s\\n" "${OVERWRITE}" "${SUCCESS}" "$package"
                 else  # if package fails to install
                     kill -9 $SPIN_PID 2>/dev/null
-                    printf "%b[ %b ] APT: Processed apt install(s) for: %s\\n" "${OVERWRITE}" "${FAILURE}" "$package"
+                    printf "%b[ %b ] APT: Installing apt install(s) for: %s\\n" "${OVERWRITE}" "${FAILURE}" "$package"
                 fi
             else  # if application running with `-d` flag
                 kill -9 $SPIN_PID 2>/dev/null
-                printf "%b[ %b ] APT: Skipped apt install(s) for: %s\\n (dry-run)" "${OVERWRITE}" "${SUCCESS}" "$package"
+                printf "%b[ %b ] APT: Installing apt install(s) for: %s\\n (skipped from dry-run)" "${OVERWRITE}" "${SUCCESS}" "$package"
             fi
             set -e
         done
