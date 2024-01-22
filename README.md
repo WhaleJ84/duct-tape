@@ -22,7 +22,7 @@ To initiate the installation process, run the bootstrapping script with one of t
 curl -s https://raw.githubusercontent.com/WhaleJ84/duct-tape/dev/bootstrap.sh | sudo bash
 
 # shorter URL for above
-curl -sLH "Cache-Control: no-cache" duct-tape.james-whale.com | sudo bash
+curl -sL duct-tape.james-whale.com | sudo bash
 
 # locally
 ./PATH/TO/bootstrap.sh
