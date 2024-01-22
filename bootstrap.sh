@@ -213,7 +213,7 @@ ensure_in_path(){
         *:"$1":*) kill -9 $SPIN_PID 2>/dev/null ; printf "%b[ %b ] ENV: %s found in PATH\\n" "${OVERWRITE}" "${SUCCESS}" "$1" ;;
         *) PATH="$1:$PATH" ; kill -9 $SPIN_PID 2>/dev/null ; printf "%b[ %b ] ENV: %s added to PATH for session\\n" "${OVERWRITE}" "${SUCCESS}" "$1" ;;
     esac
-    printf "[ %b ]ENV: DEBUG: $PATH\\n" "${DEBUG}"
+    printf "[ %b ] ENV: DEBUG: $PATH\\n" "${DEBUG}"
     set -e
 }
 
