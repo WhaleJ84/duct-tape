@@ -101,6 +101,9 @@ spinner_text(){
 }
 
 install_apt_dependencies(){
+    # Reads `installArray`, expecting a space separated list `"pkg1 pkg2 pkg3"`.
+    # Loop through each package in list and tries to install using apt.
+    # Displays a message reflecting installation outcome.
     if [[ "${#installArray[@]}" -gt 0 ]]; then
         for package in $installArray; do
             spinner_text "Processing ${PACKAGE_MANAGER} install(s) for: $package" &
