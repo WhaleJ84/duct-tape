@@ -141,10 +141,10 @@ check_apt_dependencies(){
             kill -9 $SPIN_PID 2>/dev/null
             printf "%b[ %b ] APT: Checked for %s (will be installed)\\n" "${OVERWRITE}" "${FAILURE}" "${i}"
             installArray="$installArray$i "
-            install_apt_dependencies
         fi
         set -e
     done
+    install_apt_dependencies
 }
 
 install_pyenv(){
