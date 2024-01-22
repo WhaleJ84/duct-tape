@@ -110,10 +110,10 @@ install_apt_dependencies(){
             SPIN_PID="$!"
             trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
             set +e
-            if "${PACKAGE_MANAGER}" install -y "$package" &>/dev/null; then
+            if "${PACKAGE_MANAGER}" install -y "$package" &>/dev/null; then  # if package installs correctly
                 kill -9 $SPIN_PID 2>/dev/null
                 printf "%b[ %b ] Processed ${PACKAGE_MANAGER} install(s) for: %s\\n" "${OVERWRITE}" "${SUCCESS}" "$package"
-            else
+            else  # if package fails to install
                 kill -9 $SPIN_PID 2>/dev/null
                 printf "%b[ %b ] Processed ${PACKAGE_MANAGER} install(s) for: %s\\n" "${OVERWRITE}" "${FAILURE}" "$package"
             fi
@@ -129,16 +129,16 @@ check_apt_dependencies(){
         SPIN_PID="$!"
         trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
         set +e
-        if dpkg-query -W -f='${Status}' "${i}" 2>/dev/null | grep "ok installed" &>/dev/null; then
+        if dpkg-query -W -f='${Status}' "${i}" 2>/dev/null | grep "ok installed" &>/dev/null; then  # if apt package is installed
             kill -9 $SPIN_PID 2>/dev/null
             printf "%b[ %b ] APT: Checked for %s\\n" "${OVERWRITE}" "${SUCCESS}" "${i}"
-        else
+        else  # if apt package isn't installed
             kill -9 $SPIN_PID 2>/dev/null
-            if [ "$DRY_RUN" == 0 ]; then
+            if [ "$DRY_RUN" == 0 ]; then  # if application running without `-d` flag
                 printf "%b[ %b ] APT: Checked for %s (will be installed)\\n" "${OVERWRITE}" "${FAILURE}" "${i}"
                 installArray="$installArray$i "
                 install_apt_dependencies
-            else
+            else  # if application running with `-d` flag
                 printf "%b[ %b ] APT: Checked for %s (skipped from dry run)\\n" "${OVERWRITE}" "${SUCCESS}" "${i}"
             fi
         fi
@@ -158,22 +158,22 @@ install_pyenv(){
     spinner_text "PYENV: installed pyenv (checking binary)" &
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
-    if [ "$(find $HOME/opt/pyenv/bin -name pyenv 2>/dev/null)" ]; then
+    if [ "$(find $HOME/opt/pyenv/bin -name pyenv 2>/dev/null)" ]; then  # if pyenv binary found in user opt dir
         kill -9 $SPIN_PID 2>/dev/null
         printf "%b[ %b ] PYENV: installed pyenv (binary found)" "${OVERWRITE}" "${SUCCESS}"
         sleep 1
         spinner_text "PYENV: installed pyenv (checking PATH)" &
         SPIN_PID="$!"
         trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
-        if [ $(echo $PATH | grep "$HOME/opt/pyenv/bin" 2>/dev/null) ]; then
+        if [ $(echo $PATH | grep "$HOME/opt/pyenv/bin" 2>/dev/null) ]; then  # if pyenv binary in PATH
             kill -9 $SPIN_PID 2>/dev/null
             printf "%b[ %b ] PYENV: installed pyenv (found in PATH)" "${OVERWRITE}" "${SUCCESS}"
-        else
+        else  # if pyenv binary not in PATH
             kill -9 $SPIN_PID 2>/dev/null
             echo "export PATH=$(find $HOME/opt -maxdepth 2 -type d -name 'bin' | tr '\n' ':'):$PATH" >> "$HOME/.profile"
             printf "%b[ %b ] PYENV: installed pyenv (found in PATH)" "${OVERWRITE}" "${SUCCESS}"
         fi
-    else
+    else  # if pyenv binary not found in opt dir
         kill -9 $SPIN_PID 2>/dev/null
         printf "%b[ %b ] PYENV: installed pyenv (removing directory)\\n" "${OVERWRITE}" "${FAILURE}"
         rm -rf "$PYENV_ROOT"
@@ -186,15 +186,15 @@ check_pyenv(){
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
     set +e
-    if [ "$(which pyenv 2>/dev/null)" ]; then
+    if [ "$(which pyenv 2>/dev/null)" ]; then  # if pyenv binary found in PATH
         kill -9 $SPIN_PID 2>/dev/null
         printf "%b[ %b ] PYENV: checked for pyenv\\n" "${OVERWRITE}" "${SUCCESS}"
-    else
+    else  # if pyenv binary not found in PATH
         kill -9 $SPIN_PID 2>/dev/null
-        if [ "$DRY_RUN" == 0 ]; then
+        if [ "$DRY_RUN" == 0 ]; then  # if running application without `-d` flag
             printf "%b[ %b ] PYENV: checked for pyenv (will be installed)\\n" "${OVERWRITE}" "${FAILURE}"
             install_pyenv
-        else
+        else  # if running application with `-d` flag
             printf "%b[ %b ] PYENV: checked for pyenv (skipped from dry run)\\n" "${OVERWRITE}" "${SUCCESS}"
         fi
     fi
@@ -218,11 +218,11 @@ check_git_branch(){
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
     set +e
-    if [ "$(git rev-parse --abbrev-ref HEAD 2>/dev/null)" ]; then
+    if [ "$(git rev-parse --abbrev-ref HEAD 2>/dev/null)" ]; then  # if a Git branch is detected
         GIT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
         kill -9 $SPIN_PID 2>/dev/null
         printf "%b[ %b ] GIT: %s branch found\\n" "${OVERWRITE}" "${SUCCESS}" "$GIT_BRANCH"
-    else
+    else  # if no Git branch is detected
         GIT_BRANCH="dev"
         kill -9 $SPIN_PID 2>/dev/null
         printf "%b[ %b ] GIT: defaulted to %s branch\\n" "${OVERWRITE}" "${SUCCESS}" "$GIT_BRANCH"
@@ -237,10 +237,10 @@ install_pip(){
         SPIN_PID="$!"
         trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
         set +e
-        if curl https://bootstrap.pypa.io/get-pip.py -s -o /tmp/get-pip.py; then
+        if curl https://bootstrap.pypa.io/get-pip.py -s -o /tmp/get-pip.py; then  # if get-pip script downloads successfully
             kill -9 $SPIN_PID 2>/dev/null
             printf "%b[ %b ] Downloaded pip bootstrapping script\\n" "${OVERWRITE}" "${SUCCESS}"
-        else
+        else  # if get-pip script fails to download
             kill -9 $SPIN_PID 2>/dev/null
             printf "%b[ %b ] Downloading pip bootstrapping script\\n" "${OVERWRITE}" "${FAILURE}"
         fi
@@ -251,10 +251,10 @@ install_pip(){
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
     set +e
-    if python3 /tmp/get-pip.py --user &>/dev/null; then
+    if python3 /tmp/get-pip.py --user &>/dev/null; then  # if pip is successfully installed for the user
         kill -9 $SPIN_PID 2>/dev/null
         printf "%b[ %b ] Installed pip\\n" "${OVERWRITE}" "${SUCCESS}"
-    else
+    else  # if pip fails to install for the user
         kill -9 $SPIN_PID 2>/dev/null
         printf "%b[ %b ] Installing pip\\n" "${OVERWRITE}" "${FAILURE}"
     fi
@@ -266,10 +266,10 @@ check_pip(){
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
     set +e
-    if python3 -m pip -V 2&>/dev/null; then 
+    if python3 -m pip -V 2&>/dev/null; then  # if pip is installed
         kill -9 $SPIN_PID 2>/dev/null
         printf "%b[ %b ] PYTHON: Checked for pip\\n" "${OVERWRITE}" "${SUCCESS}"
-    else
+    else  # if pip isn't installed
         kill -9 $SPIN_PID 2>/dev/null
         printf "%b[ %b ] PYTHON: Checked for pip (will be installed)\\n" "${OVERWRITE}" "${FAILURE}"
         install_pip
@@ -284,10 +284,10 @@ check_pip_dependencies(){
         SPIN_PID="$!"
         trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
         set +e
-        if python3 -m pip list | grep "$i " &>/dev/null; then
+        if python3 -m pip list | grep "$i " &>/dev/null; then  # if pip dependency is installed
             kill -9 $SPIN_PID 2>/dev/null
             printf "%b[ %b ] PIP: Checked for %s\\n" "${OVERWRITE}" "${SUCCESS}" "${i}"
-        else
+        else  # if pip depndency isn't instaled
             kill -9 $SPIN_PID 2>/dev/null
             printf "%b[ %b ] PIP: Checked for %s (will be installed)\\n" "${OVERWRITE}" "${FAILURE}" "${i}"
             installArray="$installArray$i "
@@ -297,16 +297,16 @@ check_pip_dependencies(){
 }
 
 install_pip_dependencies(){
-    if [[ "${#installArray[@]}" -gt 0 ]]; then
+    if [[ "${#installArray[@]}" -gt 0 ]]; then  # if there are packages to be installed
         for package in $installArray; do
             spinner_text "PIP: Processing install(s) for: $package" &
             SPIN_PID="$!"
             trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
             set +e
-            if python3 -m pip install --user "$package" &>/dev/null; then
+            if python3 -m pip install --user "$package" &>/dev/null; then  # if package successfully installs for user
                 kill -9 $SPIN_PID 2>/dev/null
                 printf "%b[ %b ] PIP: Processed install(s) for: %s\\n" "${OVERWRITE}" "${SUCCESS}" "$package"
-            else
+            else  # if package fails to install for user
                 kill -9 $SPIN_PID 2>/dev/null
                 printf "%b[ %b ] PIP: Processed install(s) for: %s\\n" "${OVERWRITE}" "${FAILURE}" "$package"
             fi
@@ -326,9 +326,10 @@ check_ansible_dependencies(){
         SPIN_PID="$!"
         trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
         sleep 1
-        if curl "$REQUIREMENT_URL" -so "$ANSIBLE_REQUIREMENT_FILE" &>/dev/null; then
+        if curl "$REQUIREMENT_URL" -so "$ANSIBLE_REQUIREMENT_FILE" &>/dev/null; then  # if requirement file successfully downloads
             kill -9 $SPIN_PID 2>/dev/null
             printf "%b[ %b ] ANSIBLE: Pulled requirements file\\n" "${OVERWRITE}" "${SUCCESS}"
+        # TODO: No alternative for failed download
         fi
         set -e
     fi
@@ -340,10 +341,10 @@ install_ansible_dependencies(){
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
     set +e
-    if ansible-galaxy install ${flag} -r "$ANSIBLE_REQUIREMENT_FILE" &>/dev/null; then
+    if ansible-galaxy install ${flag} -r "$ANSIBLE_REQUIREMENT_FILE" &>/dev/null; then  # if requirement successfully installs
         kill -9 $SPIN_PID 2>/dev/null
         printf "%b[ %b ] ANSIBLE: Installed requirements\\n" "${OVERWRITE}" "${SUCCESS}"
-    else
+    else  # if requirement fails to install
         kill -9 $SPIN_PID 2>/dev/null
         printf "%b[ %b ] ANSIBLE: Something failed!\\n" "${OVERWRITE}" "${FAILURE}"
     fi
