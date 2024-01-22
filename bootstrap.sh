@@ -178,7 +178,7 @@ ensure_pyenv_in_path(){
     elif "$DRY_RUN == 1"; then  # if running application with `-d` flag
         printf "%b[ %b ] PYENV: adding pyenv to PATH (skipped from dry run)\\n" "${OVERWRITE}" "${SUCCESS}"
     else  # if pyenv binary not found in opt dir
-        echo "export PATH=$(find /home/$SUDO_USER/opt -maxdepth 2 -type d -name 'bin' | tr '\n' ':'):$PATH" >> "/home/$SUDO_USER/.profile"
+        printf "export PATH=$(find /home/$SUDO_USER/opt -maxdepth 2 -type d -name 'bin' | tr '\n' ':'):\$PATH" >> "/home/$SUDO_USER/.profile"
         printf "%b[ %b ] PYENV: added pyenv to PATH\\n" "${OVERWRITE}" "${SUCCESS}"
         ensure_in_path "/home/$SUDO_USER/opt/bin/pyenv"
     fi
