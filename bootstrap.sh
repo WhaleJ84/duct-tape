@@ -85,9 +85,10 @@ EOF
 spinner_text(){
     # Takes an input and displays it next to a spinner inside a box.
     # Continues spinning until the PID is killed.
-    # Save the PID by using `SPIN_PID="$!"`.
-    # Trap the process with `trap 'kill -9 "$SPIN_PID"' $(seq 0 15)`
-    # Kill it using `kill -9 $SPIN_PID 2>/dev/null`
+    # 1. Start the process with `spinner_text "Example text" &`.
+    # 2. Save the PID by using `SPIN_PID="$!"`.
+    # 3. Trap the process with `trap 'kill -9 "$SPIN_PID"' $(seq 0 15)`
+    # 4. Kill it using `kill -9 $SPIN_PID 2>/dev/null`
     spinner='| / - \ | / - \ '
 
     while true; do
