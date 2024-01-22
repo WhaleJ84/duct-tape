@@ -106,21 +106,21 @@ install_apt_dependencies(){
     # Displays a message reflecting installation outcome.
     if [[ "${#installArray[@]}" -gt 0 ]]; then
         for package in $installArray; do
-            spinner_text "Processing ${PACKAGE_MANAGER} install(s) for: $package" &
+            spinner_text "APT: Processing apt install(s) for: $package" &
             SPIN_PID="$!"
             trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
             set +e
             if [ "$DRY_RUN" == 0 ]; then  # if application running without `-d` flag
-                if "${PACKAGE_MANAGER}" install -y "$package" &>/dev/null; then  # if package installs correctly
+                if apt install -y "$package" &>/dev/null; then  # if package installs correctly
                     kill -9 $SPIN_PID 2>/dev/null
-                    printf "%b[ %b ] Processed ${PACKAGE_MANAGER} install(s) for: %s\\n" "${OVERWRITE}" "${SUCCESS}" "$package"
+                    printf "%b[ %b ] APT: Processed apt install(s) for: %s\\n" "${OVERWRITE}" "${SUCCESS}" "$package"
                 else  # if package fails to install
                     kill -9 $SPIN_PID 2>/dev/null
-                    printf "%b[ %b ] Processed ${PACKAGE_MANAGER} install(s) for: %s\\n" "${OVERWRITE}" "${FAILURE}" "$package"
+                    printf "%b[ %b ] APT: Processed apt install(s) for: %s\\n" "${OVERWRITE}" "${FAILURE}" "$package"
                 fi
             else  # if application running with `-d` flag
                 kill -9 $SPIN_PID 2>/dev/null
-                printf "%b[ %b ] Skipped ${PACKAGE_MANAGER} install(s) for: %s\\n (dry-run)" "${OVERWRITE}" "${SUCCESS}" "$package"
+                printf "%b[ %b ] APT: Skipped apt install(s) for: %s\\n (dry-run)" "${OVERWRITE}" "${SUCCESS}" "$package"
             fi
             set -e
         done
@@ -130,7 +130,7 @@ install_apt_dependencies(){
 check_apt_dependencies(){
     installArray=""
     for i in "$@"; do
-        spinner_text "${PACKAGE_MANAGER}: Checking for ${i}" &
+        spinner_text "apt: Checking for ${i}" &
         SPIN_PID="$!"
         trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
         set +e
@@ -172,7 +172,7 @@ ensure_pyenv_in_path(){
     spinner_text "PYENV: adding pyenv to PATH" &
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
-    if [ "$(find /home/$SUDO_USER/opt/pyenv/bin -name pyenv 2>/dev/null)" ]; then  # if pyenv binary found in user opt dir
+    if find "/home/$SUDO_USER/opt/pyenv/bin" -name pyenv 2>/dev/null; then  # if pyenv binary found in user opt dir
         kill -9 $SPIN_PID 2>/dev/null
         printf "%b[ %b ] PYENV: pyenv already in PATH\\n" "${OVERWRITE}" "${SUCCESS}"
     else  # if pyenv binary not found in opt dir
@@ -316,7 +316,7 @@ install_pip_dependencies(){
 }
 
 check_ansible_dependencies(){
-    if [[ ! -f "$ANSIBLE_REQUIREMENT_FILE" ]] || [[ "$DT_TEST" ]]; then
+    if [[ ! -f "$ANSIBLE_REQUIREMENT_FILE" ]] || [[ "$DRY_RUN" ]]; then
         REQUIREMENT_URL="https://raw.githubusercontent.com/WhaleJ84/duct-tape/$GIT_BRANCH/requirements.yml"
         # FIXME: Bug where if the text is longer than term length
         # (e.g. [ | ] ANSIBLE: very long text... [ / ] ANSIBLE: v)
@@ -337,7 +337,7 @@ check_ansible_dependencies(){
 
 install_ansible_dependencies(){
     spinner_text "ANSIBLE: Installing requirements" &
-    [ "$DT_TEST" ] && flag="--force" || flag=""
+    [ "$DRY_RUN" ] && flag="--force" || flag=""
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
     set +e
@@ -361,7 +361,6 @@ done
 
 # TODO: Make keyboard interrupts kill script entirely
 # TODO: Put install tasks inside check tasks and only run them if not in test mode
-[ "$(which apt 2>/dev/null)" ] || PACKAGE_MANAGER="apt"
 printf "%s\\n" "$LOGO"
 sleep 1
 [ $DRY_RUN == 1 ] && printf "[ DRY RUN ] Running in dry run mode.             No modifications will be made.\\n"
