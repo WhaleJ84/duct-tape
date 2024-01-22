@@ -153,30 +153,32 @@ install_pyenv(){
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
     set +e
-    curl -s https://pyenv.run | bash 2>/dev/null
-    kill -9 $SPIN_PID 2>/dev/null
-    spinner_text "PYENV: installed pyenv (checking binary)" &
+    if [ "$DRY_RUN" == 0 ]; then  # if running application without `-d` flag
+        if [ "$(curl -s https://pyenv.run | bash 2>/dev/null)" ]; then  # if pyenv successfully installs
+            kill -9 $SPIN_PID 2>/dev/null
+            printf "%b[ %b ] PYENV: installed pyenv\\n" "${OVERWRITE}" "${SUCCESS}"
+        else  # if pyenv fails to install
+            kill -9 $SPIN_PID 2>/dev/null
+            printf "%b[ %b ] PYENV: installing pyenv (removing files)\\n" "${OVERWRITE}" "${FAILURE}"
+            rm -rf "$PYENV_ROOT"
+        fi
+    else  # if running application with `-d` flag
+        printf "%b[ %b ] PYENV: installing pyenv (skipped from dry run)\\n" "${OVERWRITE}" "${SUCCESS}"
+    fi
+}
+
+ensure_pyenv_in_path(){
+    spinner_text "PYENV: adding pyenv to PATH" &
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
     if [ "$(find $HOME/opt/pyenv/bin -name pyenv 2>/dev/null)" ]; then  # if pyenv binary found in user opt dir
         kill -9 $SPIN_PID 2>/dev/null
-        printf "%b[ %b ] PYENV: installed pyenv (binary found)" "${OVERWRITE}" "${SUCCESS}"
-        sleep 1
-        spinner_text "PYENV: installed pyenv (checking PATH)" &
-        SPIN_PID="$!"
-        trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
-        if [ $(echo $PATH | grep "$HOME/opt/pyenv/bin" 2>/dev/null) ]; then  # if pyenv binary in PATH
-            kill -9 $SPIN_PID 2>/dev/null
-            printf "%b[ %b ] PYENV: installed pyenv (found in PATH)" "${OVERWRITE}" "${SUCCESS}"
-        else  # if pyenv binary not in PATH
-            kill -9 $SPIN_PID 2>/dev/null
-            echo "export PATH=$(find $HOME/opt -maxdepth 2 -type d -name 'bin' | tr '\n' ':'):$PATH" >> "$HOME/.profile"
-            printf "%b[ %b ] PYENV: installed pyenv (found in PATH)" "${OVERWRITE}" "${SUCCESS}"
-        fi
+        printf "%b[ %b ] PYENV: pyenv already in PATH\\n" "${OVERWRITE}" "${SUCCESS}"
     else  # if pyenv binary not found in opt dir
         kill -9 $SPIN_PID 2>/dev/null
-        printf "%b[ %b ] PYENV: installed pyenv (removing directory)\\n" "${OVERWRITE}" "${FAILURE}"
-        rm -rf "$PYENV_ROOT"
+        echo "export PATH=$(find $HOME/opt -maxdepth 2 -type d -name 'bin' | tr '\n' ':'):$PATH" >> "$HOME/.profile"
+        ptinrf "%b[ %b ] PYENV: added pyenv to PATH\\n" "${OVERWRITE}" "${SUCCESS}"
+        ensure_in_path "$HOME/opt/bin/pyenv"
     fi
     set -e
 }
@@ -191,12 +193,9 @@ check_pyenv(){
         printf "%b[ %b ] PYENV: checked for pyenv\\n" "${OVERWRITE}" "${SUCCESS}"
     else  # if pyenv binary not found in PATH
         kill -9 $SPIN_PID 2>/dev/null
-        if [ "$DRY_RUN" == 0 ]; then  # if running application without `-d` flag
-            printf "%b[ %b ] PYENV: checked for pyenv (will be installed)\\n" "${OVERWRITE}" "${FAILURE}"
-            install_pyenv
-        else  # if running application with `-d` flag
-            printf "%b[ %b ] PYENV: checked for pyenv (skipped from dry run)\\n" "${OVERWRITE}" "${SUCCESS}"
-        fi
+        printf "%b[ %b ] PYENV: checked for pyenv (will be installed)\\n" "${OVERWRITE}" "${FAILURE}"
+        install_pyenv
+        ensure_pyenv_in_path
     fi
     set -e
 }
