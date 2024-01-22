@@ -177,7 +177,7 @@ ensure_pyenv_in_path(){
     else  # if pyenv binary not found in opt dir
         kill -9 $SPIN_PID 2>/dev/null
         echo "export PATH=$(find $HOME/opt -maxdepth 2 -type d -name 'bin' | tr '\n' ':'):$PATH" >> "$HOME/.profile"
-        ptinrf "%b[ %b ] PYENV: added pyenv to PATH\\n" "${OVERWRITE}" "${SUCCESS}"
+        printf "%b[ %b ] PYENV: added pyenv to PATH\\n" "${OVERWRITE}" "${SUCCESS}"
         ensure_in_path "$HOME/opt/bin/pyenv"
     fi
     set -e
