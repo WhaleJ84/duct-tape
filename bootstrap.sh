@@ -58,7 +58,7 @@ export ANSIBLE_FORCE_COLOR='1'
 PYENV_DEPENENCIES="build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev libncurses-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev"
 APT_DEPENDENCIES="$PYENV_DEPENENCIES git python3"
 PIP_DEPENDENCIES="ansible"
-ANSIBLE_PATH="$SUDO_USER/.local/bin"
+ANSIBLE_PATH="/home/$SUDO_USER/.local/bin"
 
 COL_NC='\e[0m'
 COL_LIGHT_GREEN='\e[1;32m'
@@ -147,8 +147,8 @@ check_apt_dependencies(){
 }
 
 install_pyenv(){
-    mkdir -p "$SUDO_USER/opt/"
-    export PYENV_ROOT="$SUDO_USER/opt/pyenv"
+    mkdir -p "/home/$SUDO_USER/opt/"
+    export PYENV_ROOT="/home/$SUDO_USER/opt/pyenv"
     spinner_text "PYENV: installing pyenv" &
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
@@ -171,14 +171,14 @@ ensure_pyenv_in_path(){
     spinner_text "PYENV: adding pyenv to PATH" &
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
-    if [ "$(find $SUDO_USER/opt/pyenv/bin -name pyenv 2>/dev/null)" ]; then  # if pyenv binary found in user opt dir
+    if [ "$(find /home/$SUDO_USER/opt/pyenv/bin -name pyenv 2>/dev/null)" ]; then  # if pyenv binary found in user opt dir
         kill -9 $SPIN_PID 2>/dev/null
         printf "%b[ %b ] PYENV: pyenv already in PATH\\n" "${OVERWRITE}" "${SUCCESS}"
     else  # if pyenv binary not found in opt dir
         kill -9 $SPIN_PID 2>/dev/null
-        echo "export PATH=$(find $SUDO_USER/opt -maxdepth 2 -type d -name 'bin' | tr '\n' ':'):$PATH" >> "$SUDO_USER/.profile"
+        echo "export PATH=$(find /home/$SUDO_USER/opt -maxdepth 2 -type d -name 'bin' | tr '\n' ':'):$PATH" >> "/home/$SUDO_USER/.profile"
         printf "%b[ %b ] PYENV: added pyenv to PATH\\n" "${OVERWRITE}" "${SUCCESS}"
-        ensure_in_path "$SUDO_USER/opt/bin/pyenv"
+        ensure_in_path "/home/$SUDO_USER/opt/bin/pyenv"
     fi
     set -e
 }
