@@ -122,7 +122,7 @@ install_apt_dependencies(){
                 fi
             else  # if application running with `-d` flag
                 kill -9 $SPIN_PID 2>/dev/null
-                printf "%b[ %b ] APT: Installing apt install(s) for: %s\\n (skipped from dry-run)" "${OVERWRITE}" "${SUCCESS}" "$package"
+                printf "%b[ %b ] APT: Installing apt install(s) for: %s\\n (skipped from dry-run)" "${OVERWRITE}" "${DEBUG}" "$package"
             fi
             set -e
         done
@@ -166,7 +166,7 @@ install_pyenv(){
             rm -rf "$PYENV_ROOT"
         fi
     else  # if running application with `-d` flag
-        printf "%b[ %b ] PYENV: installing pyenv (skipped from dry run)\\n" "${OVERWRITE}" "${SUCCESS}"
+        printf "%b[ %b ] PYENV: installing pyenv (skipped from dry run)\\n" "${OVERWRITE}" "${DEBUG}"
     fi
 }
 
@@ -178,7 +178,7 @@ ensure_pyenv_in_path(){
     if find "/home/$SUDO_USER/opt/pyenv/bin" -name pyenv 2>/dev/null; then  # if pyenv binary found in user opt dir
         printf "%b[ %b ] PYENV: pyenv already in PATH\\n" "${OVERWRITE}" "${SUCCESS}"
     elif [ "$DRY_RUN" == 1 ]; then  # if running application with `-d` flag
-        printf "%b[ %b ] PYENV: adding pyenv to PATH (skipped from dry run)\\n" "${OVERWRITE}" "${SUCCESS}"
+        printf "%b[ %b ] PYENV: adding pyenv to PATH (skipped from dry run)\\n" "${OVERWRITE}" "${DEBUG}"
     else  # if pyenv binary not found in opt dir
         printf "export PATH=$(find /home/$SUDO_USER/opt -maxdepth 2 -type d -name 'bin' | tr '\n' ':'):\$PATH" >> "/home/$SUDO_USER/.profile"
         printf "%b[ %b ] PYENV: added pyenv to PATH\\n" "${OVERWRITE}" "${SUCCESS}"
