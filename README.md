@@ -21,6 +21,9 @@ To initiate the installation process, run the bootstrapping script with one of t
 # remotely
 curl -s https://raw.githubusercontent.com/WhaleJ84/duct-tape/dev/bootstrap.sh | sudo bash
 
+# shorter URL for above
+curl -sL duct-tape.james-whale.com | sudo bash
+
 # locally
 ./PATH/TO/bootstrap.sh
 
