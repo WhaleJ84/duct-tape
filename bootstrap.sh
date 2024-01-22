@@ -110,12 +110,17 @@ install_apt_dependencies(){
             SPIN_PID="$!"
             trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
             set +e
-            if "${PACKAGE_MANAGER}" install -y "$package" &>/dev/null; then  # if package installs correctly
+            if [ "$DRY_RUN" == 0 ]; then  # if application running without `-d` flag
+                if "${PACKAGE_MANAGER}" install -y "$package" &>/dev/null; then  # if package installs correctly
+                    kill -9 $SPIN_PID 2>/dev/null
+                    printf "%b[ %b ] Processed ${PACKAGE_MANAGER} install(s) for: %s\\n" "${OVERWRITE}" "${SUCCESS}" "$package"
+                else  # if package fails to install
+                    kill -9 $SPIN_PID 2>/dev/null
+                    printf "%b[ %b ] Processed ${PACKAGE_MANAGER} install(s) for: %s\\n" "${OVERWRITE}" "${FAILURE}" "$package"
+                fi
+            else  # if application running with `-d` flag
                 kill -9 $SPIN_PID 2>/dev/null
-                printf "%b[ %b ] Processed ${PACKAGE_MANAGER} install(s) for: %s\\n" "${OVERWRITE}" "${SUCCESS}" "$package"
-            else  # if package fails to install
-                kill -9 $SPIN_PID 2>/dev/null
-                printf "%b[ %b ] Processed ${PACKAGE_MANAGER} install(s) for: %s\\n" "${OVERWRITE}" "${FAILURE}" "$package"
+                printf "%b[ %b ] Skilled ${PACKAGE_MANAGER} install(s) for: %s\\n (dry-run)" "${OVERWRITE}" "${SUCCESS}" "$package"
             fi
             set -e
         done
@@ -134,13 +139,9 @@ check_apt_dependencies(){
             printf "%b[ %b ] APT: Checked for %s\\n" "${OVERWRITE}" "${SUCCESS}" "${i}"
         else  # if apt package isn't installed
             kill -9 $SPIN_PID 2>/dev/null
-            if [ "$DRY_RUN" == 0 ]; then  # if application running without `-d` flag
-                printf "%b[ %b ] APT: Checked for %s (will be installed)\\n" "${OVERWRITE}" "${FAILURE}" "${i}"
-                installArray="$installArray$i "
-                install_apt_dependencies
-            else  # if application running with `-d` flag
-                printf "%b[ %b ] APT: Checked for %s (skipped from dry run)\\n" "${OVERWRITE}" "${SUCCESS}" "${i}"
-            fi
+            printf "%b[ %b ] APT: Checked for %s (will be installed)\\n" "${OVERWRITE}" "${FAILURE}" "${i}"
+            installArray="$installArray$i "
+            install_apt_dependencies
         fi
         set -e
     done
