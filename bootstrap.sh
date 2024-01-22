@@ -122,7 +122,7 @@ install_apt_dependencies(){
                 fi
             else  # if application running with `-d` flag
                 kill -9 $SPIN_PID 2>/dev/null
-                printf "%b[ %b ] APT: Installing apt install(s) for: %s\\n (skipped from dry-run)" "${OVERWRITE}" "${DEBUG}" "$package"
+                printf "%b[ %b ] APT: Installing apt install(s) for: %s (skipped from dry-run)\\n" "${OVERWRITE}" "${DEBUG}" "$package"
             fi
             set -e
         done
