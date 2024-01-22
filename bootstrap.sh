@@ -63,8 +63,10 @@ ANSIBLE_PATH="/home/$SUDO_USER/.local/bin"
 COL_NC='\e[0m'
 COL_LIGHT_GREEN='\e[1;32m'
 COL_LIGHT_RED='\e[1;31m'
+COL_LIGHT_BLUE='\e[1:34m'
 SUCCESS="${COL_LIGHT_GREEN}*${COL_NC}"
 FAILURE="${COL_LIGHT_RED}x${COL_NC}"
+DEBUG="${COL_LIGHT_BLUE}?${COL_NC}"
 OVERWRITE='\r\033[K'
 DRY_RUN=0
 
@@ -211,6 +213,7 @@ ensure_in_path(){
         *:"$1":*) kill -9 $SPIN_PID 2>/dev/null ; printf "%b[ %b ] ENV: %s found in PATH\\n" "${OVERWRITE}" "${SUCCESS}" "$1" ;;
         *) PATH="$1:$PATH" ; kill -9 $SPIN_PID 2>/dev/null ; printf "%b[ %b ] ENV: %s added to PATH for session\\n" "${OVERWRITE}" "${SUCCESS}" "$1" ;;
     esac
+    printf "[ %b ]ENV: DEBUG: $PATH\\n" "${DEBUG}"
     set -e
 }
 
