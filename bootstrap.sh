@@ -180,8 +180,8 @@ ensure_pyenv_in_path(){
     else  # if pyenv binary not found in opt dir
         printf "export PATH=$(find /home/$SUDO_USER/opt -maxdepth 2 -type d -name 'bin' | tr '\n' ':'):\$PATH" >> "/home/$SUDO_USER/.profile"
         printf "%b[ %b ] PYENV: added pyenv to PATH\\n" "${OVERWRITE}" "${SUCCESS}"
-        ensure_in_path "/home/$SUDO_USER/opt/bin/pyenv"
     fi
+    ensure_in_path "/home/$SUDO_USER/opt/bin/pyenv"
     set -e
 }
 
