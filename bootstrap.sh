@@ -55,9 +55,8 @@ export ANSIBLE_FORCE_COLOR='1'
 
 #DETECTED_OS=$(grep '^ID=' /etc/os-release | cut -d '=' -f2 | tr -d '"')
 #DETECTED_VERSION=$(grep VERSION_ID /etc/os-release | cut -d '=' -f2 | tr -d '"')
-PYENV_DEPENENCIES="build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev libncurses-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev"
-APT_DEPENDENCIES="$PYENV_DEPENENCIES git python3"
-PIP_DEPENDENCIES="ansible"
+PRE_APT_DEPENDENCIES="software-properties-common"
+APT_DEPENDENCIES="ansible git"
 ANSIBLE_PATH="/home/$SUDO_USER/.local/bin"
 
 COL_NC='\e[0m'
@@ -83,7 +82,6 @@ EOF
     exit 0
 }
 
-
 spinner_text(){
     # Takes an input and displays it next to a spinner inside a box.
     # Continues spinning until the PID is killed.
@@ -100,6 +98,27 @@ spinner_text(){
             sleep 0.1
         done
     done
+}
+
+update_apt_repository(){
+    # Updates apt repository.
+    spinner_text "APT: Updating apt repository" &
+    SPIN_PID="$!"
+    trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
+    set +e
+    if [ "$DRY_RUN" == 0 ]; then  # if application running without `-d` flag
+        if apt update &>/dev/null; then  # if repository updates successfully
+            kill -9 $SPIN_PID 2>/dev/null
+            printf "%b[ %b ] APT: Updated apt repository\\n" "${OVERWRITE}" "${SUCCESS}"
+        else  # if repository fails to update
+            kill -9 $SPIN_PID 2>/dev/null
+            printf "%b[ %b ] APT: Updating apt repository\\n" "${OVERWRITE}" "${FAILURE}"
+        fi
+    else  # if application running without `-d` flag
+        kill -9 $SPIN_PID 2>/dev/null
+        printf "%b[ %b ] APT: Updating apt repository (skipped from dry-run)\\n" "${OVERWRITE}" "${DEBUG}"
+    fi
+    set -e
 }
 
 install_apt_dependencies(){
@@ -132,7 +151,7 @@ install_apt_dependencies(){
 check_apt_dependencies(){
     installArray=""
     for i in "$@"; do
-        spinner_text "apt: Checking for ${i}" &
+        spinner_text "APT: Checking for ${i}" &
         SPIN_PID="$!"
         trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
         set +e
@@ -146,60 +165,46 @@ check_apt_dependencies(){
         fi
         set -e
     done
+    update_apt_repository
     install_apt_dependencies
 }
 
-install_pyenv(){
-    mkdir -p "/home/$SUDO_USER/opt/"
-    export PYENV_ROOT="/home/$SUDO_USER/opt/pyenv"
-    spinner_text "PYENV: installing pyenv" &
+add_apt_repository(){
+    spinner_text "APT: Adding apt repository: $2:$1" &
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
     set +e
-    if [ "$DRY_RUN" == 0 ]; then  # if running application without `-d` flag
-        if [ "$(curl -s https://pyenv.run | bash 2>/dev/null)" ]; then  # if pyenv successfully installs
+    if [ "$DRY_RUN" == 0 ]; then  # if application running without `-d` flag
+        if add-apt-repository --yes "$2:$1" &>/dev/null; then  # if apt repository is installed
             kill -9 $SPIN_PID 2>/dev/null
-            printf "%b[ %b ] PYENV: installed pyenv\\n" "${OVERWRITE}" "${SUCCESS}"
-        else  # if pyenv fails to install
+            printf "%b[ %b ] APT: Added apt repository: %s\\n" "${OVERWRITE}" "${SUCCESS}" "$2:$1"
+        else  # if apt repository isn't installed
             kill -9 $SPIN_PID 2>/dev/null
-            printf "%b[ %b ] PYENV: installing pyenv (removing files)\\n" "${OVERWRITE}" "${FAILURE}"
-            rm -rf "$PYENV_ROOT"
+            printf "%b[ %b ] APT: Adding apt repository: %s\\n" "${OVERWRITE}" "${FAILURE}" "$2:$1"
         fi
-    else  # if running application with `-d` flag
-        printf "%b[ %b ] PYENV: installing pyenv (skipped from dry run)\\n" "${OVERWRITE}" "${DEBUG}"
+    else  # if application running with `-d` flag
+        kill -9 $SPIN_PID 2>/dev/null
+        printf "%b[ %b ] APT: Added apt repository: %s (skipped from dry-run)\\n" "${OVERWRITE}" "${DEBUG}" "$2:$1"
     fi
-}
-
-ensure_pyenv_in_path(){
-    spinner_text "PYENV: adding pyenv to PATH" &
-    SPIN_PID="$!"
-    trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
-    kill -9 $SPIN_PID 2>/dev/null
-    if find "/home/$SUDO_USER/opt/pyenv/bin" -name pyenv 2>/dev/null; then  # if pyenv binary found in user opt dir
-        printf "%b[ %b ] PYENV: pyenv already in PATH\\n" "${OVERWRITE}" "${SUCCESS}"
-    elif [ "$DRY_RUN" == 1 ]; then  # if running application with `-d` flag
-        printf "%b[ %b ] PYENV: adding pyenv to PATH (skipped from dry run)\\n" "${OVERWRITE}" "${DEBUG}"
-    else  # if pyenv binary not found in opt dir
-        printf "export PATH=$(find /home/$SUDO_USER/opt -maxdepth 2 -type d -name 'bin' | tr '\n' ':'):\$PATH" >> "/home/$SUDO_USER/.profile"
-        printf "%b[ %b ] PYENV: added pyenv to PATH\\n" "${OVERWRITE}" "${SUCCESS}"
-    fi
-    ensure_in_path "/home/$SUDO_USER/opt/bin/pyenv"
     set -e
 }
 
-check_pyenv(){
-    spinner_text "PYENV: checking for pyenv" &
+check_apt_repository(){
+    repo="ppa"
+    if [ -n "$2" ]; then
+        repo="$2"
+    fi
+    spinner_text "APT: Checking apt repository: $repo:$1" &
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
     set +e
-    if [ "$(which pyenv 2>/dev/null)" ]; then  # if pyenv binary found in PATH
+    if apt-cache policy | grep "$1" &>/dev/null; then  # if apt repository is installed
         kill -9 $SPIN_PID 2>/dev/null
-        printf "%b[ %b ] PYENV: checked for pyenv\\n" "${OVERWRITE}" "${SUCCESS}"
-    else  # if pyenv binary not found in PATH
+        printf "%b[ %b ] APT: Checked apt repository: %s\\n" "${OVERWRITE}" "${SUCCESS}" "$repo:$1"
+    else  # if apt repository isn't installed
         kill -9 $SPIN_PID 2>/dev/null
-        printf "%b[ %b ] PYENV: checked for pyenv (will be installed)\\n" "${OVERWRITE}" "${FAILURE}"
-        install_pyenv
-        ensure_pyenv_in_path
+        printf "%b[ %b ] APT: Checked apt repository: %s (will be installed)\\n" "${OVERWRITE}" "${FAILURE}" "$repo:$1"
+        add_apt_repository "$1" "$repo"
     fi
     set -e
 }
@@ -232,90 +237,6 @@ check_git_branch(){
     fi
     set -e
     ANSIBLE_REQUIREMENT_FILE="/tmp/$GIT_BRANCH-requirements.yml"
-}
-
-install_pip(){
-    if [ ! -f "/tmp/get-pip.py" ]; then
-        spinner_text "Downloading pip bootstrapping script" &
-        SPIN_PID="$!"
-        trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
-        set +e
-        if curl https://bootstrap.pypa.io/get-pip.py -s -o /tmp/get-pip.py; then  # if get-pip script downloads successfully
-            kill -9 $SPIN_PID 2>/dev/null
-            printf "%b[ %b ] Downloaded pip bootstrapping script\\n" "${OVERWRITE}" "${SUCCESS}"
-        else  # if get-pip script fails to download
-            kill -9 $SPIN_PID 2>/dev/null
-            printf "%b[ %b ] Downloading pip bootstrapping script\\n" "${OVERWRITE}" "${FAILURE}"
-        fi
-        set -e
-    fi
-
-    spinner_text "Installing pip" &
-    SPIN_PID="$!"
-    trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
-    set +e
-    if python3 /tmp/get-pip.py --user &>/dev/null; then  # if pip is successfully installed for the user
-        kill -9 $SPIN_PID 2>/dev/null
-        printf "%b[ %b ] Installed pip\\n" "${OVERWRITE}" "${SUCCESS}"
-    else  # if pip fails to install for the user
-        kill -9 $SPIN_PID 2>/dev/null
-        printf "%b[ %b ] Installing pip\\n" "${OVERWRITE}" "${FAILURE}"
-    fi
-    set -e
-}
-
-check_pip(){
-    spinner_text "PYTHON: Checking for pip" & 
-    SPIN_PID="$!"
-    trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
-    set +e
-    if python3 -m pip -V 2&>/dev/null; then  # if pip is installed
-        kill -9 $SPIN_PID 2>/dev/null
-        printf "%b[ %b ] PYTHON: Checked for pip\\n" "${OVERWRITE}" "${SUCCESS}"
-    else  # if pip isn't installed
-        kill -9 $SPIN_PID 2>/dev/null
-        printf "%b[ %b ] PYTHON: Checked for pip (will be installed)\\n" "${OVERWRITE}" "${FAILURE}"
-        install_pip
-    fi
-    set -e
-}
-
-check_pip_dependencies(){
-    installArray=""
-    for i in "$@"; do
-        spinner_text "PIP: Checking for ${i}" &
-        SPIN_PID="$!"
-        trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
-        set +e
-        if python3 -m pip list | grep "$i " &>/dev/null; then  # if pip dependency is installed
-            kill -9 $SPIN_PID 2>/dev/null
-            printf "%b[ %b ] PIP: Checked for %s\\n" "${OVERWRITE}" "${SUCCESS}" "${i}"
-        else  # if pip depndency isn't instaled
-            kill -9 $SPIN_PID 2>/dev/null
-            printf "%b[ %b ] PIP: Checked for %s (will be installed)\\n" "${OVERWRITE}" "${FAILURE}" "${i}"
-            installArray="$installArray$i "
-        fi
-        set -e
-    done
-}
-
-install_pip_dependencies(){
-    if [[ "${#installArray[@]}" -gt 0 ]]; then  # if there are packages to be installed
-        for package in $installArray; do
-            spinner_text "PIP: Processing install(s) for: $package" &
-            SPIN_PID="$!"
-            trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
-            set +e
-            if python3 -m pip install --user "$package" &>/dev/null; then  # if package successfully installs for user
-                kill -9 $SPIN_PID 2>/dev/null
-                printf "%b[ %b ] PIP: Processed install(s) for: %s\\n" "${OVERWRITE}" "${SUCCESS}" "$package"
-            else  # if package fails to install for user
-                kill -9 $SPIN_PID 2>/dev/null
-                printf "%b[ %b ] PIP: Processed install(s) for: %s\\n" "${OVERWRITE}" "${FAILURE}" "$package"
-            fi
-            set -e
-        done
-    fi
 }
 
 check_ansible_dependencies(){
@@ -369,10 +290,10 @@ sleep 1
 [ $DRY_RUN == 1 ] && printf "[ DRY RUN ] Running in dry run mode.             No modifications will be made.\\n"
 #
 # Ensure that all the relevant apt dependencies are installed
+check_apt_dependencies $PRE_APT_DEPENDENCIES 
+check_apt_repository "ansible/ansible"
 check_apt_dependencies $APT_DEPENDENCIES 
-
-# Ensure pyenv is installed
-check_pyenv
+exit 0
 
 # Make sure to look for Ansible in it's correct place 
 # TODO: Find out why this is placed here
@@ -380,13 +301,6 @@ ensure_in_path "$ANSIBLE_PATH"
 
 # Determine which Duct-tape git branch to pull ansible requirements from
 check_git_branch
-
-# NOTE: This will be changed to check for pyenv and its addons
-check_pip
-
-# Ensure the relevant pip dependencies are installed
-check_pip_dependencies $PIP_DEPENDENCIES
-install_pip_dependencies
 
 # Ensire the relevant ansible dependencies are installed
 check_ansible_dependencies
