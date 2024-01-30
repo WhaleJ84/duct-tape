@@ -53,7 +53,8 @@ set -e
 export PY_COLORS='1'
 export ANSIBLE_FORCE_COLOR='1'
 
-#DETECTED_OS=$(grep '^ID=' /etc/os-release | cut -d '=' -f2 | tr -d '"')
+DETECTED_OS=$(grep '^ID=' /etc/os-release | cut -d '=' -f2 | tr -d '"')
+TESTED_OSES="ubuntu"
 #DETECTED_VERSION=$(grep VERSION_ID /etc/os-release | cut -d '=' -f2 | tr -d '"')
 PRE_APT_DEPENDENCIES="software-properties-common"
 APT_DEPENDENCIES="ansible git"
@@ -68,6 +69,7 @@ FAILURE="${COL_LIGHT_RED}x${COL_NC}"
 DEBUG="${COL_LIGHT_BLUE}?${COL_NC}"
 OVERWRITE='\r\033[K'
 DRY_RUN=0
+BYPASS_OS=0
 
 usage(){
     cat << EOF
@@ -76,6 +78,7 @@ Installs the relevant requirements to get Ansible installed on the system
 and pull down desired runbooks from Git repository.
 
 OPTIONS:
+    -b      Bypass OS check. Run script on untested systems
     -d      Perform dry run. Do not make any modifications
     -h      Display this message and exit
 EOF
@@ -98,6 +101,37 @@ spinner_text(){
             sleep 0.1
         done
     done
+}
+
+tested_os_warning(){
+    # Checks if detected OS is in list of tested OSes.
+    # Warns if system is not tested and requires explicit flag.
+    spinner_text "OS: Checking OS distribution" &
+    SPIN_PID="$!"
+    trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
+    set +e
+    if [ "$BYPASS_OS" == 0 ]; then
+        case "$TESTED_OSES" in
+            "$DETECTED_OS") \
+                kill -9 $SPIN_PID 2>/dev/null && \
+                printf "%b[ %b ] OS: %s in tested list\\n" "${OVERWRITE}" "${SUCCESS}" "${DETECTED_OS}" ;;
+            *) \
+                kill -9 $SPIN_PID 2>/dev/null && \
+                printf "%b[ %b ] OS: %s not in tested list (run with '-b' flag to force operation)\\n" "${OVERWRITE}" "${FAILURE}" "${DETECTED_OS}" && \
+                exit 0 ;;
+        esac
+    else
+        TIMER=3
+        kill -9 $SPIN_PID 2>/dev/null
+        printf "%b[ %b ] OS: %s bypassed in tested list (%s SECONDS TO CANCEL)" "${OVERWRITE}" "${DEBUG}" "${DETECTED_OS}" "${TIMER}"
+        while [ "$TIMER" -gt 0 ]; do
+            printf "%b[ %b ] OS: %s bypassed in tested list (%s SECONDS TO CANCEL)" "${OVERWRITE}" "${DEBUG}" "${DETECTED_OS}" "${TIMER}"
+            sleep 1
+            TIMER=$(expr "$TIMER" - 1)
+        done
+        printf "%b[ %b ] OS: %s bypassed in tested list\\n" "${OVERWRITE}" "${DEBUG}" "${DETECTED_OS}"
+    fi
+    set -e
 }
 
 update_apt_repository(){
@@ -275,8 +309,9 @@ install_ansible_dependencies(){
     set -e
 }
 
-while getopts dh arg; do
+while getopts bdh arg; do
     case "$arg" in
+        b) BYPASS_OS=1 ;;
         d) DRY_RUN=1 ;;
         h) usage ;;
         ?) usage ;;
@@ -288,7 +323,10 @@ done
 printf "%s\\n" "$LOGO"
 sleep 1
 [ $DRY_RUN == 1 ] && printf "[ DRY RUN ] Running in dry run mode.             No modifications will be made.\\n"
-#
+
+# Check system OS
+tested_os_warning
+
 # Ensure that all the relevant apt dependencies are installed
 check_apt_dependencies $PRE_APT_DEPENDENCIES 
 check_apt_repository "ansible/ansible"
