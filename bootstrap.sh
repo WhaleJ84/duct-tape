@@ -124,29 +124,28 @@ tested_os_warning(){
     # Checks if detected OS is in list of tested OSes.
     # Warns if system is not tested and requires explicit flag.
     spinner_text "OS" "Checking OS distribution" &
-    sleep 1
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
     set +e
     case "$TESTED_OSES" in
         "$DETECTED_OS") \
             kill -9 $SPIN_PID 2>/dev/null && \
-            printf "%b[ %b ] OS:\t%s in tested list\\n" "${OVERWRITE}" "${SUCCESS}" "${DETECTED_OS}" ;;
+            printf "%b[ %b ] OS:\tChecked %s in distribution list\\n" "${OVERWRITE}" "${SUCCESS}" "${DETECTED_OS}" ;;
         *) \
             if [ "$BYPASS_CHECKS" == 0 ]; then \
                 kill -9 $SPIN_PID 2>/dev/null && \
-                printf "%b[ %b ] OS:\t%s not in tested list (use '-b' flag to force operation)\\n" "${OVERWRITE}" "${FAILURE}" "${DETECTED_OS}" && \
+                printf "%b[ %b ] OS:\tChecked %s not in distribution list (use '-b' flag to force operation)\\n" "${OVERWRITE}" "${FAILURE}" "${DETECTED_OS}" && \
                 exit 0
             else \
                 TIMER=3 && \
                 kill -9 $SPIN_PID 2>/dev/null && \
-                printf "%b[ %b ] OS:\t%s bypassed in tested list (%s SECONDS TO CANCEL)" "${OVERWRITE}" "${DEBUG}" "${DETECTED_OS}" "${TIMER}" && \
+                printf "%b[ %b ] OS:\t%Checked s bypassed in distribution list (%s SECONDS TO CANCEL)" "${OVERWRITE}" "${DEBUG}" "${DETECTED_OS}" "${TIMER}" && \
                 while [ "$TIMER" -gt 0 ]; do
-                    printf "%b[ %b ] OS:\t%s bypassed in tested list (%s SECONDS TO CANCEL)" "${OVERWRITE}" "${DEBUG}" "${DETECTED_OS}" "${TIMER}" && \
+                    printf "%b[ %b ] OS:\t%Checked s bypassed in distribution list (%s SECONDS TO CANCEL)" "${OVERWRITE}" "${DEBUG}" "${DETECTED_OS}" "${TIMER}" && \
                     sleep 1 && \
                     TIMER=$(expr "$TIMER" - 1) 
                 done
-                printf "%b[ %b ] OS:\t%s bypassed in tested list\\n" "${OVERWRITE}" "${DEBUG}" "${DETECTED_OS}"
+                printf "%b[ %b ] OS:\t%Checked s bypassed in distribution list\\n" "${OVERWRITE}" "${DEBUG}" "${DETECTED_OS}"
             fi ;;
         esac
     set -e
@@ -157,13 +156,13 @@ bypass_version(){
     # Called in `tested_version_warning`.
     TIMER=3
     kill -9 $SPIN_PID 2>/dev/null
-    printf "%b[ %b ] OS:\t%s bypassed in tested list (%s SECONDS TO CANCEL)" "${OVERWRITE}" "${DEBUG}" "${DETECTED_VERSION}" "${TIMER}"
+    printf "%b[ %b ] OS:\t%Checked s bypassed in version list (%s SECONDS TO CANCEL)" "${OVERWRITE}" "${DEBUG}" "${DETECTED_VERSION}" "${TIMER}"
     while [ "$TIMER" -gt 0 ]; do
-        printf "%b[ %b ] OS:\t%s bypassed in tested list (%s SECONDS TO CANCEL)" "${OVERWRITE}" "${DEBUG}" "${DETECTED_VERSION}" "${TIMER}"
+        printf "%b[ %b ] OS:\t%Checked s bypassed in version list (%s SECONDS TO CANCEL)" "${OVERWRITE}" "${DEBUG}" "${DETECTED_VERSION}" "${TIMER}"
         sleep 1
         TIMER=$(expr "$TIMER" - 1)
     done
-    printf "%b[ %b ] OS:\t%s bypassed in tested list\\n" "${OVERWRITE}" "${DEBUG}" "${DETECTED_VERSION}"
+    printf "%b[ %b ] OS:\t%Checked s bypassed in version list\\n" "${OVERWRITE}" "${DEBUG}" "${DETECTED_VERSION}"
 }
 
 tested_version_warning(){
@@ -177,18 +176,18 @@ tested_version_warning(){
         case "$TESTED_UBUNTU_VERSIONS" in
             "$DETECTED_VERSION") \
                 kill -9 $SPIN_PID 2>/dev/null && \
-                printf "%b[ %b ] OS:\t%s in tested list\\n" "${OVERWRITE}" "${SUCCESS}" "${DETECTED_VERSION}" ;;
+                printf "%b[ %b ] OS:\tChecked %s in version list\\n" "${OVERWRITE}" "${SUCCESS}" "${DETECTED_VERSION}" ;;
             *) \
                 kill -9 $SPIN_PID 2>/dev/null && \
                 if [ "$BYPASS_CHECKS" == 0 ]; then \
-                    printf "%b[ %b ] OS:\t%s not in tested list (use '-b' flag to force operation)\\n" "${OVERWRITE}" "${FAILURE}" "${DETECTED_VERSION}" && \
+                    printf "%b[ %b ] OS:\tChecked %s not in version list (use '-b' flag to force operation)\\n" "${OVERWRITE}" "${FAILURE}" "${DETECTED_VERSION}" && \
                     exit 0
                 else
                     bypass_version
                 fi ;;
         esac
     else
-        printf "%b[ %b ] OS:\t%s not in any OS version (see '\$DETECTED_*VERSION')" "${OVERWRITE}" "${FAILURE}" "${DETECTED_VERSION}"
+        printf "%b[ %b ] OS:\tChecked %s not in any OS version (see '\$DETECTED_*VERSION')" "${OVERWRITE}" "${FAILURE}" "${DETECTED_VERSION}"
         exit 2  # TODO: document unique exit code. This shouldn't really happen so if 2 occurs, then logic weirdness.
     fi
 }
@@ -302,18 +301,6 @@ check_apt_repository(){
     set -e
 }
 
-ensure_in_path(){
-    spinner_text "ENV" "checking for $1 in PATH" &
-    SPIN_PID="$!"
-    trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
-    set +e
-    case ":${PATH:=$1}:" in
-        *:"$1":*) kill -9 $SPIN_PID 2>/dev/null ; printf "%b[ %b ] ENV:\t%s found in PATH\\n" "${OVERWRITE}" "${SUCCESS}" "$1" ;;
-        *) PATH="$1:$PATH" ; kill -9 $SPIN_PID 2>/dev/null ; printf "%b[ %b ] ENV:\t%s added to PATH for session\\n" "${OVERWRITE}" "${SUCCESS}" "$1" ;;
-    esac
-    set -e
-}
-
 check_git_branch(){
     spinner_text "GIT" "checking branch" &
     SPIN_PID="$!"
@@ -394,14 +381,11 @@ tested_version_warning
 check_apt_dependencies $PRE_APT_DEPENDENCIES 
 check_apt_repository "ansible/ansible"
 check_apt_dependencies $APT_DEPENDENCIES 
-exit 0
-
-# Make sure to look for Ansible in it's correct place 
-# TODO: Find out why this is placed here
-ensure_in_path "$ANSIBLE_PATH"
 
 # Determine which Duct-tape git branch to pull ansible requirements from
 check_git_branch
+
+exit 0
 
 # Ensire the relevant ansible dependencies are installed
 check_ansible_dependencies
