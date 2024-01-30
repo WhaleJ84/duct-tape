@@ -88,6 +88,9 @@ EOF
 }
 
 supported(){
+    # Displays supported OSes and versions.
+    # Loops through each OS in TESTED_OS
+    # and displays each TESTED_$OS_VERSION supported.
     printf "SUPPORTED:\\n"
     for system in $TESTED_OSES; do
         printf "    %s:\\n" "$system"
