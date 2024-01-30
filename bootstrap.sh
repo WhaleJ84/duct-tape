@@ -82,7 +82,20 @@ OPTIONS:
     -b      Bypass OS check. Run script on untested systems
     -d      Perform dry run. Do not make any modifications
     -h      Display this message and exit
+    -s      Display supported operating systems and versions and exit
 EOF
+    exit 0
+}
+
+supported(){
+    printf "SUPPORTED:\\n"
+    for system in $TESTED_OSES; do
+        printf "    %s:\\n" "$system"
+        versions_var="TESTED_$(echo "${system}" | tr '[:lower:]' '[:upper:]')_VERSIONS"
+        for version in $(eval echo \$"$versions_var"); do
+            printf "        %s\\n" "$version"
+        done
+    done
     exit 0
 }
 
@@ -97,8 +110,8 @@ spinner_text(){
 
     while true; do
         for pos in $spinner; do
-            printf "[ %s ] %s:\t%s" "$pos" "$1" "$2"
-            printf "%b[ %s ] %s:\t%s" "$OVERWRITE" "$pos" "$1" "$2"
+            printf "\r[ %s ] %s:\t%s" "$pos" "$1" "$2"
+            printf "\r%b[ %s ] %s:\t%s" "$OVERWRITE" "$pos" "$1" "$2"
             sleep 0.1
         done
     done
@@ -353,11 +366,12 @@ install_ansible_dependencies(){
     set -e
 }
 
-while getopts bdh arg; do
+while getopts bdhs arg; do
     case "$arg" in
         b) BYPASS_CHECKS=1 ;;
         d) DRY_RUN=1 ;;
         h) usage ;;
+        s) supported ;;
         ?) usage ;;
     esac
 done
