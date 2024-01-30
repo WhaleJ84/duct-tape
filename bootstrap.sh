@@ -170,7 +170,6 @@ tested_version_warning(){
     # Checks if detected version is in list of tested versions.
     # Warns if version is not tested and requires explicit flag.
     spinner_text "OS" "Checking OS version" &
-    sleep 1
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
     set +e
