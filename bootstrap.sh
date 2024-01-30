@@ -55,7 +55,8 @@ export ANSIBLE_FORCE_COLOR='1'
 
 DETECTED_OS=$(grep '^ID=' /etc/os-release | cut -d '=' -f2 | tr -d '"')
 TESTED_OSES="ubuntu"
-#DETECTED_VERSION=$(grep VERSION_ID /etc/os-release | cut -d '=' -f2 | tr -d '"')
+DETECTED_VERSION=$(grep VERSION_ID /etc/os-release | cut -d '=' -f2 | tr -d '"')
+TESTED_UBUNTU_VERSIONS="20.04"
 PRE_APT_DEPENDENCIES="software-properties-common"
 APT_DEPENDENCIES="ansible git"
 ANSIBLE_PATH="/home/$SUDO_USER/.local/bin"
@@ -69,7 +70,7 @@ FAILURE="${COL_LIGHT_RED}x${COL_NC}"
 DEBUG="${COL_LIGHT_BLUE}?${COL_NC}"
 OVERWRITE='\r\033[K'
 DRY_RUN=0
-BYPASS_OS=0
+BYPASS_CHECKS=0
 
 usage(){
     cat << EOF
@@ -107,32 +108,74 @@ tested_os_warning(){
     # Checks if detected OS is in list of tested OSes.
     # Warns if system is not tested and requires explicit flag.
     spinner_text "OS" "Checking OS distribution" &
-    sleep 2
+    sleep 1
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
     set +e
-    if [ "$BYPASS_OS" == 0 ]; then
-        case "$TESTED_OSES" in
-            "$DETECTED_OS") \
+    case "$TESTED_OSES" in
+        "$DETECTED_OS") \
+            kill -9 $SPIN_PID 2>/dev/null && \
+            printf "%b[ %b ] OS:\t%s in tested list\\n" "${OVERWRITE}" "${SUCCESS}" "${DETECTED_OS}" ;;
+        *) \
+            if [ "$BYPASS_CHECKS" == 0 ]; then \
                 kill -9 $SPIN_PID 2>/dev/null && \
-                printf "%b[ %b ] OS:\t%s in tested list\\n" "${OVERWRITE}" "${SUCCESS}" "${DETECTED_OS}" ;;
+                printf "%b[ %b ] OS:\t%s not in tested list (use '-b' flag to force operation)\\n" "${OVERWRITE}" "${FAILURE}" "${DETECTED_OS}" && \
+                exit 0
+            else \
+                TIMER=3 && \
+                kill -9 $SPIN_PID 2>/dev/null && \
+                printf "%b[ %b ] OS:\t%s bypassed in tested list (%s SECONDS TO CANCEL)" "${OVERWRITE}" "${DEBUG}" "${DETECTED_OS}" "${TIMER}" && \
+                while [ "$TIMER" -gt 0 ]; do
+                    printf "%b[ %b ] OS:\t%s bypassed in tested list (%s SECONDS TO CANCEL)" "${OVERWRITE}" "${DEBUG}" "${DETECTED_OS}" "${TIMER}" && \
+                    sleep 1 && \
+                    TIMER=$(expr "$TIMER" - 1) 
+                done
+                printf "%b[ %b ] OS:\t%s bypassed in tested list\\n" "${OVERWRITE}" "${DEBUG}" "${DETECTED_OS}"
+            fi ;;
+        esac
+    set -e
+}
+
+bypass_version(){
+    # Bypasses OS version check if '-b' flag is detected.
+    # Called in `tested_version_warning`.
+    TIMER=3
+    kill -9 $SPIN_PID 2>/dev/null
+    printf "%b[ %b ] OS:\t%s bypassed in tested list (%s SECONDS TO CANCEL)" "${OVERWRITE}" "${DEBUG}" "${DETECTED_VERSION}" "${TIMER}"
+    while [ "$TIMER" -gt 0 ]; do
+        printf "%b[ %b ] OS:\t%s bypassed in tested list (%s SECONDS TO CANCEL)" "${OVERWRITE}" "${DEBUG}" "${DETECTED_VERSION}" "${TIMER}"
+        sleep 1
+        TIMER=$(expr "$TIMER" - 1)
+    done
+    printf "%b[ %b ] OS:\t%s bypassed in tested list\\n" "${OVERWRITE}" "${DEBUG}" "${DETECTED_VERSION}"
+}
+
+tested_version_warning(){
+    # Checks if detected version is in list of tested versions.
+    # Warns if version is not tested and requires explicit flag.
+    spinner_text "OS" "Checking OS version" &
+    sleep 1
+    SPIN_PID="$!"
+    trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
+    set +e
+    if [ "$DETECTED_OS" == "ubuntu" ]; then
+        case "$TESTED_UBUNTU_VERSIONS" in
+            "$DETECTED_VERSION") \
+                kill -9 $SPIN_PID 2>/dev/null && \
+                printf "%b[ %b ] OS:\t%s in tested list\\n" "${OVERWRITE}" "${SUCCESS}" "${DETECTED_VERSION}" ;;
             *) \
                 kill -9 $SPIN_PID 2>/dev/null && \
-                printf "%b[ %b ] OS:\t%s not in tested list (run with '-b' flag to force operation)\\n" "${OVERWRITE}" "${FAILURE}" "${DETECTED_OS}" && \
-                exit 0 ;;
+                if [ "$BYPASS_CHECKS" == 0 ]; then \
+                    printf "%b[ %b ] OS:\t%s not in tested list (use '-b' flag to force operation)\\n" "${OVERWRITE}" "${FAILURE}" "${DETECTED_VERSION}" && \
+                    exit 0
+                else
+                    bypass_version
+                fi ;;
         esac
     else
-        TIMER=3
-        kill -9 $SPIN_PID 2>/dev/null
-        printf "%b[ %b ] OS:\t%s bypassed in tested list (%s SECONDS TO CANCEL)" "${OVERWRITE}" "${DEBUG}" "${DETECTED_OS}" "${TIMER}"
-        while [ "$TIMER" -gt 0 ]; do
-            printf "%b[ %b ] OS:\t%s bypassed in tested list (%s SECONDS TO CANCEL)" "${OVERWRITE}" "${DEBUG}" "${DETECTED_OS}" "${TIMER}"
-            sleep 1
-            TIMER=$(expr "$TIMER" - 1)
-        done
-        printf "%b[ %b ] OS:\t%s bypassed in tested list\\n" "${OVERWRITE}" "${DEBUG}" "${DETECTED_OS}"
+        printf "%b[ %b ] OS:\t%s not in any OS version (see '\$DETECTED_*VERSION')" "${OVERWRITE}" "${FAILURE}" "${DETECTED_VERSION}"
+        exit 2  # TODO: document unique exit code. This shouldn't really happen so if 2 occurs, then logic weirdness.
     fi
-    set -e
 }
 
 update_apt_repository(){
@@ -312,7 +355,7 @@ install_ansible_dependencies(){
 
 while getopts bdh arg; do
     case "$arg" in
-        b) BYPASS_OS=1 ;;
+        b) BYPASS_CHECKS=1 ;;
         d) DRY_RUN=1 ;;
         h) usage ;;
         ?) usage ;;
@@ -327,6 +370,9 @@ sleep 1
 
 # Check system OS
 tested_os_warning
+
+# Check OS verison
+tested_version_warning
 
 # Ensure that all the relevant apt dependencies are installed
 check_apt_dependencies $PRE_APT_DEPENDENCIES 
