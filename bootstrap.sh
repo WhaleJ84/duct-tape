@@ -302,18 +302,18 @@ check_apt_repository(){
 }
 
 check_git_branch(){
-    spinner_text "GIT" "checking branch" &
+    spinner_text "GIT" "Checking branch" &
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
     set +e
     if [ "$(git rev-parse --abbrev-ref HEAD 2>/dev/null)" ]; then  # if a Git branch is detected
         GIT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
         kill -9 $SPIN_PID 2>/dev/null
-        printf "%b[ %b ] GIT:\t%s branch found\\n" "${OVERWRITE}" "${SUCCESS}" "$GIT_BRANCH"
+        printf "%b[ %b ] GIT:\tUsing %s branch\\n" "${OVERWRITE}" "${SUCCESS}" "$GIT_BRANCH"
     else  # if no Git branch is detected
         GIT_BRANCH="dev"
         kill -9 $SPIN_PID 2>/dev/null
-        printf "%b[ %b ] GIT:\tdefaulted to %s branch\\n" "${OVERWRITE}" "${SUCCESS}" "$GIT_BRANCH"
+        printf "%b[ %b ] GIT:\tUsing %s branch by default\\n" "${OVERWRITE}" "${SUCCESS}" "$GIT_BRANCH"
     fi
     set -e
     ANSIBLE_REQUIREMENT_FILE="/tmp/$GIT_BRANCH-requirements.yml"
