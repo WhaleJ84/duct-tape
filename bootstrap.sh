@@ -319,26 +319,6 @@ check_git_branch(){
     ANSIBLE_REQUIREMENT_FILE="/tmp/$GIT_BRANCH-requirements.yml"
 }
 
-check_ansible_dependencies(){
-    if [[ ! -f "$ANSIBLE_REQUIREMENT_FILE" ]] || [[ "$DRY_RUN" ]]; then
-        REQUIREMENT_URL="https://raw.githubusercontent.com/WhaleJ84/duct-tape/$GIT_BRANCH/requirements.yml"
-        # FIXME: Bug where if the text is longer than term length
-        # (e.g. [ | ] ANSIBLE: very long text... [ / ] ANSIBLE: v)
-        # and gets cut off when doubled, the spinner doesn't work
-        # as intended. Visual bug only. 39 chars max
-        spinner_text "ANSIBLE" "Pulling requirements" &
-        SPIN_PID="$!"
-        trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
-        sleep 1
-        if curl "$REQUIREMENT_URL" -so "$ANSIBLE_REQUIREMENT_FILE" &>/dev/null; then  # if requirement file successfully downloads
-            kill -9 $SPIN_PID 2>/dev/null
-            printf "%b[ %b ] ANSIBLE:\tPulled requirements file\\n" "${OVERWRITE}" "${SUCCESS}"
-        # TODO: No alternative for failed download
-        fi
-        set -e
-    fi
-}
-
 install_ansible_dependencies(){
     spinner_text "ANSIBLE" "Installing requirements" &
     [ "$DRY_RUN" ] && flag="--force" || flag=""
@@ -353,6 +333,24 @@ install_ansible_dependencies(){
         printf "%b[ %b ] ANSIBLE:\tSomething failed!\\n" "${OVERWRITE}" "${FAILURE}"
     fi
     set -e
+}
+
+check_ansible_dependencies(){
+    if [[ ! -f "$ANSIBLE_REQUIREMENT_FILE" ]] || [[ "$DRY_RUN" ]]; then
+        REQUIREMENT_URL="https://raw.githubusercontent.com/WhaleJ84/duct-tape/$GIT_BRANCH/requirements.yml"
+        spinner_text "ANSIBLE" "Pulling requirements" &
+        SPIN_PID="$!"
+        trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
+        if curl "$REQUIREMENT_URL" -so "$ANSIBLE_REQUIREMENT_FILE" &>/dev/null; then  # if requirement file successfully downloads
+            kill -9 $SPIN_PID 2>/dev/null
+            printf "%b[ %b ] ANSIBLE:\tPulled requirements file\\n" "${OVERWRITE}" "${SUCCESS}"
+        else
+            kill -9 $SPIN_PID 2>/dev/null
+            printf "%b[ %b ] ANSIBLE:\tPulling requirements" "${OVERWRITE}" "${FAILURE}"
+        fi
+        set -e
+        # install_ansible_dependencies
+    fi
 }
 
 while getopts bdhs arg; do
@@ -385,11 +383,7 @@ check_apt_dependencies $APT_DEPENDENCIES
 # Determine which Duct-tape git branch to pull ansible requirements from
 check_git_branch
 
-exit 0
-
 # Ensire the relevant ansible dependencies are installed
 check_ansible_dependencies
-install_ansible_dependencies
 
-# TODO: Make this only run when not in test mode
-#ansible-pull -KU https://github.com/WhaleJ84/duct-tape.git
+[ $DRY_RUN == 0 ] && ansible-pull -KU https://github.com/WhaleJ84/duct-tape.git
