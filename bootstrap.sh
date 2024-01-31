@@ -369,7 +369,7 @@ done
 # TODO: Put install tasks inside check tasks and only run them if not in test mode
 printf "%s\\n" "$LOGO"
 sleep 1
-[ $DRY_RUN == 1 ] && printf "[ %b ] DEBUG:\tRunning in dry run mode           No modifications will be made\\n" "${DEBUG}"
+[ $DRY_RUN == 1 ] && printf "[ %b ]    DEBUG:\tRunning in dry run mode           No modifications will be made\\n" "${DEBUG}"
 
 # Check system OS
 tested_os_warning
