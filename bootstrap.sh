@@ -190,6 +190,7 @@ tested_version_warning(){
         printf "%b[ %b ] OS:\tChecked %s not in any OS version (see '\$DETECTED_*VERSION')" "${OVERWRITE}" "${FAILURE}" "${DETECTED_VERSION}"
         exit 2  # TODO: document unique exit code. This shouldn't really happen so if 2 occurs, then logic weirdness.
     fi
+    set -e
 }
 
 update_apt_repository(){
