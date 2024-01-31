@@ -387,4 +387,4 @@ check_git_branch
 # Ensire the relevant ansible dependencies are installed
 check_ansible_dependencies
 
-printf "[ %b ] COMPLETE:\tTo continue configuring system, run:\\n\tansible-pull -KU https://github.com/WhaleJ84/duct-tape.git" "${SUCCESS}"
+printf "[ %b ] COMPLETE:\tTo continue configuring system, run:\\n\tansible-pull -KU https://github.com/WhaleJ84/duct-tape.git\\n" "${SUCCESS}"
