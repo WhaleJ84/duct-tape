@@ -358,7 +358,7 @@ check_ansible_dependencies(){
         set -e
     else
         kill -9 $SPIN_PID 2>/dev/null
-        printf "%b[ %b ]  ANSIBLE:\tFound requirements file\\n" "${OVERWRITE}" "${FAILURE}"
+        printf "%b[ %b ]  ANSIBLE:\tFound requirements file\\n" "${OVERWRITE}" "${SUCCESS}"
     fi
     install_ansible_dependencies
 }
