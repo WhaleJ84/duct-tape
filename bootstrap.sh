@@ -326,18 +326,23 @@ install_ansible_dependencies(){
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
     set +e
-    if ansible-galaxy install ${flag} -r "$ANSIBLE_REQUIREMENT_FILE" &>/dev/null; then  # if requirement successfully installs
+    if [ "$DRY_RUN" == 0 ]; then  # if application running without `-d` flag
+        if ansible-galaxy install ${flag} -r "$ANSIBLE_REQUIREMENT_FILE" &>/dev/null; then  # if requirement successfully installs
+            kill -9 $SPIN_PID 2>/dev/null
+            printf "%b[ %b ]  ANSIBLE:\tInstalled requirements\\n" "${OVERWRITE}" "${SUCCESS}"
+        else  # if requirement fails to install
+            kill -9 $SPIN_PID 2>/dev/null
+            printf "%b[ %b ]  ANSIBLE:\tSomething failed!\\n" "${OVERWRITE}" "${FAILURE}"
+        fi
+    else  # if application running with `-d` flag
         kill -9 $SPIN_PID 2>/dev/null
-        printf "%b[ %b ]  ANSIBLE:\tInstalled requirements\\n" "${OVERWRITE}" "${SUCCESS}"
-    else  # if requirement fails to install
-        kill -9 $SPIN_PID 2>/dev/null
-        printf "%b[ %b ]  ANSIBLE:\tSomething failed!\\n" "${OVERWRITE}" "${FAILURE}"
+        printf "%b[ %b ]  ANSIBLE:\tInstalling requirements (skipped from dry-run)\\n" "${OVERWRITE}" "${DEBUG}"
     fi
     set -e
 }
 
 check_ansible_dependencies(){
-    if [[ ! -f "$ANSIBLE_REQUIREMENT_FILE" ]] || [[ "$DRY_RUN" ]]; then
+    if [[ ! -f "$ANSIBLE_REQUIREMENT_FILE" ]]; then
         REQUIREMENT_URL="https://raw.githubusercontent.com/WhaleJ84/duct-tape/$GIT_BRANCH/requirements.yml"
         spinner_text " ANSIBLE" "Pulling requirements" &
         SPIN_PID="$!"
@@ -351,7 +356,7 @@ check_ansible_dependencies(){
             printf "%b[ %b ]  ANSIBLE:\tFailed to pull requirements" "${OVERWRITE}" "${FAILURE}"
         fi
         set -e
-        # install_ansible_dependencies
+        install_ansible_dependencies
     fi
 }
 
