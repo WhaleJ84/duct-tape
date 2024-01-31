@@ -123,29 +123,29 @@ spinner_text(){
 tested_os_warning(){
     # Checks if detected OS is in list of tested OSes.
     # Warns if system is not tested and requires explicit flag.
-    spinner_text "OS" "Checking OS distribution" &
+    spinner_text "      OS" "Checking OS distribution" &
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
     set +e
     case "$TESTED_OSES" in
         "$DETECTED_OS") \
             kill -9 $SPIN_PID 2>/dev/null && \
-            printf "%b[ %b ] OS:\tChecked %s in distribution list\\n" "${OVERWRITE}" "${SUCCESS}" "${DETECTED_OS}" ;;
+            printf "%b[ %b ]       OS:\tChecked %s in distribution list\\n" "${OVERWRITE}" "${SUCCESS}" "${DETECTED_OS}" ;;
         *) \
             if [ "$BYPASS_CHECKS" == 0 ]; then \
                 kill -9 $SPIN_PID 2>/dev/null && \
-                printf "%b[ %b ] OS:\tChecked %s not in distribution list (use '-b' flag to force operation)\\n" "${OVERWRITE}" "${FAILURE}" "${DETECTED_OS}" && \
+                printf "%b[ %b ]       OS:\tChecked %s not in distribution list (use '-b' flag to force operation)\\n" "${OVERWRITE}" "${FAILURE}" "${DETECTED_OS}" && \
                 exit 0
             else \
                 TIMER=3 && \
                 kill -9 $SPIN_PID 2>/dev/null && \
-                printf "%b[ %b ] OS:\t%Checked s bypassed in distribution list (%s SECONDS TO CANCEL)" "${OVERWRITE}" "${DEBUG}" "${DETECTED_OS}" "${TIMER}" && \
+                printf "%b[ %b ]       OS:\t%Checked s bypassed in distribution list (%s SECONDS TO CANCEL)" "${OVERWRITE}" "${DEBUG}" "${DETECTED_OS}" "${TIMER}" && \
                 while [ "$TIMER" -gt 0 ]; do
-                    printf "%b[ %b ] OS:\t%Checked s bypassed in distribution list (%s SECONDS TO CANCEL)" "${OVERWRITE}" "${DEBUG}" "${DETECTED_OS}" "${TIMER}" && \
+                    printf "%b[ %b ]       OS:\t%Checked s bypassed in distribution list (%s SECONDS TO CANCEL)" "${OVERWRITE}" "${DEBUG}" "${DETECTED_OS}" "${TIMER}" && \
                     sleep 1 && \
                     TIMER=$(expr "$TIMER" - 1) 
                 done
-                printf "%b[ %b ] OS:\t%Checked s bypassed in distribution list\\n" "${OVERWRITE}" "${DEBUG}" "${DETECTED_OS}"
+                printf "%b[ %b ]       OS:\t%Checked s bypassed in distribution list\\n" "${OVERWRITE}" "${DEBUG}" "${DETECTED_OS}"
             fi ;;
         esac
     set -e
@@ -156,19 +156,19 @@ bypass_version(){
     # Called in `tested_version_warning`.
     TIMER=3
     kill -9 $SPIN_PID 2>/dev/null
-    printf "%b[ %b ] OS:\t%Checked s bypassed in version list (%s SECONDS TO CANCEL)" "${OVERWRITE}" "${DEBUG}" "${DETECTED_VERSION}" "${TIMER}"
+    printf "%b[ %b ]       OS:\t%Checked s bypassed in version list (%s SECONDS TO CANCEL)" "${OVERWRITE}" "${DEBUG}" "${DETECTED_VERSION}" "${TIMER}"
     while [ "$TIMER" -gt 0 ]; do
-        printf "%b[ %b ] OS:\t%Checked s bypassed in version list (%s SECONDS TO CANCEL)" "${OVERWRITE}" "${DEBUG}" "${DETECTED_VERSION}" "${TIMER}"
+        printf "%b[ %b ]       OS:\t%Checked s bypassed in version list (%s SECONDS TO CANCEL)" "${OVERWRITE}" "${DEBUG}" "${DETECTED_VERSION}" "${TIMER}"
         sleep 1
         TIMER=$(expr "$TIMER" - 1)
     done
-    printf "%b[ %b ] OS:\t%Checked s bypassed in version list\\n" "${OVERWRITE}" "${DEBUG}" "${DETECTED_VERSION}"
+    printf "%b[ %b ]       OS:\t%Checked s bypassed in version list\\n" "${OVERWRITE}" "${DEBUG}" "${DETECTED_VERSION}"
 }
 
 tested_version_warning(){
     # Checks if detected version is in list of tested versions.
     # Warns if version is not tested and requires explicit flag.
-    spinner_text "OS" "Checking OS version" &
+    spinner_text "      OS" "Checking OS version" &
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
     set +e
@@ -176,18 +176,18 @@ tested_version_warning(){
         case "$TESTED_UBUNTU_VERSIONS" in
             "$DETECTED_VERSION") \
                 kill -9 $SPIN_PID 2>/dev/null && \
-                printf "%b[ %b ] OS:\tChecked %s in version list\\n" "${OVERWRITE}" "${SUCCESS}" "${DETECTED_VERSION}" ;;
+                printf "%b[ %b ]       OS:\tChecked %s in version list\\n" "${OVERWRITE}" "${SUCCESS}" "${DETECTED_VERSION}" ;;
             *) \
                 kill -9 $SPIN_PID 2>/dev/null && \
                 if [ "$BYPASS_CHECKS" == 0 ]; then \
-                    printf "%b[ %b ] OS:\tChecked %s not in version list (use '-b' flag to force operation)\\n" "${OVERWRITE}" "${FAILURE}" "${DETECTED_VERSION}" && \
+                    printf "%b[ %b ]       OS:\tChecked %s not in version list (use '-b' flag to force operation)\\n" "${OVERWRITE}" "${FAILURE}" "${DETECTED_VERSION}" && \
                     exit 0
                 else
                     bypass_version
                 fi ;;
         esac
     else
-        printf "%b[ %b ] OS:\tChecked %s not in any OS version (see '\$DETECTED_*VERSION')" "${OVERWRITE}" "${FAILURE}" "${DETECTED_VERSION}"
+        printf "%b[ %b ]       OS:\tChecked %s not in any OS version (see '\$DETECTED_*VERSION')" "${OVERWRITE}" "${FAILURE}" "${DETECTED_VERSION}"
         exit 2  # TODO: document unique exit code. This shouldn't really happen so if 2 occurs, then logic weirdness.
     fi
     set -e
@@ -195,21 +195,21 @@ tested_version_warning(){
 
 update_apt_repository(){
     # Updates apt repository.
-    spinner_text "APT" "Updating apt repository" &
+    spinner_text "     APT" "Updating apt repository" &
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
     set +e
     if [ "$DRY_RUN" == 0 ]; then  # if application running without `-d` flag
         if apt update &>/dev/null; then  # if repository updates successfully
             kill -9 $SPIN_PID 2>/dev/null
-            printf "%b[ %b ] APT:\tUpdated apt repository\\n" "${OVERWRITE}" "${SUCCESS}"
+            printf "%b[ %b ]      APT:\tUpdated apt repository\\n" "${OVERWRITE}" "${SUCCESS}"
         else  # if repository fails to update
             kill -9 $SPIN_PID 2>/dev/null
-            printf "%b[ %b ] APT:\tUpdating apt repository\\n" "${OVERWRITE}" "${FAILURE}"
+            printf "%b[ %b ]      APT:\tUpdating apt repository\\n" "${OVERWRITE}" "${FAILURE}"
         fi
     else  # if application running without `-d` flag
         kill -9 $SPIN_PID 2>/dev/null
-        printf "%b[ %b ] APT:\tUpdating apt repository (skipped from dry-run)\\n" "${OVERWRITE}" "${DEBUG}"
+        printf "%b[ %b ]      APT:\tUpdating apt repository (skipped from dry-run)\\n" "${OVERWRITE}" "${DEBUG}"
     fi
     set -e
 }
@@ -220,21 +220,21 @@ install_apt_dependencies(){
     # Displays a message reflecting installation outcome.
     if [[ "${#installArray[@]}" -gt 0 ]]; then
         for package in $installArray; do
-            spinner_text "APT" "Installing apt install(s) for: $package" &
+            spinner_text "     APT" "Installing apt install(s) for: $package" &
             SPIN_PID="$!"
             trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
             set +e
             if [ "$DRY_RUN" == 0 ]; then  # if application running without `-d` flag
                 if apt install -y "$package" &>/dev/null; then  # if package installs correctly
                     kill -9 $SPIN_PID 2>/dev/null
-                    printf "%b[ %b ] APT:\tInstalled apt install(s) for: %s\\n" "${OVERWRITE}" "${SUCCESS}" "$package"
+                    printf "%b[ %b ]      APT:\tInstalled apt install(s) for: %s\\n" "${OVERWRITE}" "${SUCCESS}" "$package"
                 else  # if package fails to install
                     kill -9 $SPIN_PID 2>/dev/null
-                    printf "%b[ %b ] APT:\tInstalling apt install(s) for: %s\\n" "${OVERWRITE}" "${FAILURE}" "$package"
+                    printf "%b[ %b ]      APT:\tInstalling apt install(s) for: %s\\n" "${OVERWRITE}" "${FAILURE}" "$package"
                 fi
             else  # if application running with `-d` flag
                 kill -9 $SPIN_PID 2>/dev/null
-                printf "%b[ %b ] APT:\tInstalling apt install(s) for: %s (skipped from dry-run)\\n" "${OVERWRITE}" "${DEBUG}" "$package"
+                printf "%b[ %b ]      APT:\tInstalling apt install(s) for: %s (skipped from dry-run)\\n" "${OVERWRITE}" "${DEBUG}" "$package"
             fi
             set -e
         done
@@ -244,16 +244,16 @@ install_apt_dependencies(){
 check_apt_dependencies(){
     installArray=""
     for i in "$@"; do
-        spinner_text "APT" "Checking for ${i}" &
+        spinner_text "     APT" "Checking for ${i}" &
         SPIN_PID="$!"
         trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
         set +e
         if dpkg-query -W -f='${Status}' "${i}" 2>/dev/null | grep "ok installed" &>/dev/null; then  # if apt package is installed
             kill -9 $SPIN_PID 2>/dev/null
-            printf "%b[ %b ] APT:\tChecked for %s\\n" "${OVERWRITE}" "${SUCCESS}" "${i}"
+            printf "%b[ %b ]      APT:\tChecked for %s\\n" "${OVERWRITE}" "${SUCCESS}" "${i}"
         else  # if apt package isn't installed
             kill -9 $SPIN_PID 2>/dev/null
-            printf "%b[ %b ] APT:\tChecked for %s (will be installed)\\n" "${OVERWRITE}" "${FAILURE}" "${i}"
+            printf "%b[ %b ]      APT:\tChecked for %s (will be installed)\\n" "${OVERWRITE}" "${FAILURE}" "${i}"
             installArray="$installArray$i "
         fi
         set -e
@@ -263,21 +263,21 @@ check_apt_dependencies(){
 }
 
 add_apt_repository(){
-    spinner_text "APT" "Adding apt repository: $2:$1" &
+    spinner_text "     APT" "Adding apt repository: $2:$1" &
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
     set +e
     if [ "$DRY_RUN" == 0 ]; then  # if application running without `-d` flag
         if add-apt-repository --yes "$2:$1" &>/dev/null; then  # if apt repository is installed
             kill -9 $SPIN_PID 2>/dev/null
-            printf "%b[ %b ] APT:\tAdded apt repository: %s\\n" "${OVERWRITE}" "${SUCCESS}" "$2:$1"
+            printf "%b[ %b ]      APT:\tAdded apt repository: %s\\n" "${OVERWRITE}" "${SUCCESS}" "$2:$1"
         else  # if apt repository isn't installed
             kill -9 $SPIN_PID 2>/dev/null
-            printf "%b[ %b ] APT:\tAdding apt repository: %s\\n" "${OVERWRITE}" "${FAILURE}" "$2:$1"
+            printf "%b[ %b ]      APT:\tAdding apt repository: %s\\n" "${OVERWRITE}" "${FAILURE}" "$2:$1"
         fi
     else  # if application running with `-d` flag
         kill -9 $SPIN_PID 2>/dev/null
-        printf "%b[ %b ] APT:\tAdded apt repository: %s (skipped from dry-run)\\n" "${OVERWRITE}" "${DEBUG}" "$2:$1"
+        printf "%b[ %b ]      APT:\tAdded apt repository: %s (skipped from dry-run)\\n" "${OVERWRITE}" "${DEBUG}" "$2:$1"
     fi
     set -e
 }
@@ -287,51 +287,51 @@ check_apt_repository(){
     if [ -n "$2" ]; then
         repo="$2"
     fi
-    spinner_text "APT" "Checking apt repository: $repo:$1" &
+    spinner_text "      APT" "Checking apt repository: $repo:$1" &
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
     set +e
     if apt-cache policy | grep "$1" &>/dev/null; then  # if apt repository is installed
         kill -9 $SPIN_PID 2>/dev/null
-        printf "%b[ %b ] APT:\tChecked apt repository: %s\\n" "${OVERWRITE}" "${SUCCESS}" "$repo:$1"
+        printf "%b[ %b ]      APT:\tChecked apt repository: %s\\n" "${OVERWRITE}" "${SUCCESS}" "$repo:$1"
     else  # if apt repository isn't installed
         kill -9 $SPIN_PID 2>/dev/null
-        printf "%b[ %b ] APT:\tChecked apt repository: %s (will be installed)\\n" "${OVERWRITE}" "${FAILURE}" "$repo:$1"
+        printf "%b[ %b ]      APT:\tChecked apt repository: %s (will be installed)\\n" "${OVERWRITE}" "${FAILURE}" "$repo:$1"
         add_apt_repository "$1" "$repo"
     fi
     set -e
 }
 
 check_git_branch(){
-    spinner_text "GIT" "Checking branch" &
+    spinner_text "     GIT" "Checking branch" &
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
     set +e
     if [ "$(git rev-parse --abbrev-ref HEAD 2>/dev/null)" ]; then  # if a Git branch is detected
         GIT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
         kill -9 $SPIN_PID 2>/dev/null
-        printf "%b[ %b ] GIT:\tUsing %s branch\\n" "${OVERWRITE}" "${SUCCESS}" "$GIT_BRANCH"
+        printf "%b[ %b ]      GIT:\tUsing %s branch\\n" "${OVERWRITE}" "${SUCCESS}" "$GIT_BRANCH"
     else  # if no Git branch is detected
         GIT_BRANCH="dev"
         kill -9 $SPIN_PID 2>/dev/null
-        printf "%b[ %b ] GIT:\tUsing %s branch by default\\n" "${OVERWRITE}" "${SUCCESS}" "$GIT_BRANCH"
+        printf "%b[ %b ]      GIT:\tUsing %s branch by default\\n" "${OVERWRITE}" "${SUCCESS}" "$GIT_BRANCH"
     fi
     set -e
     ANSIBLE_REQUIREMENT_FILE="/tmp/$GIT_BRANCH-requirements.yml"
 }
 
 install_ansible_dependencies(){
-    spinner_text "ANSIBLE" "Installing requirements" &
+    spinner_text " ANSIBLE" "Installing requirements" &
     [ "$DRY_RUN" ] && flag="--force" || flag=""
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
     set +e
     if ansible-galaxy install ${flag} -r "$ANSIBLE_REQUIREMENT_FILE" &>/dev/null; then  # if requirement successfully installs
         kill -9 $SPIN_PID 2>/dev/null
-        printf "%b[ %b ] ANSIBLE:\tInstalled requirements\\n" "${OVERWRITE}" "${SUCCESS}"
+        printf "%b[ %b ]  ANSIBLE:\tInstalled requirements\\n" "${OVERWRITE}" "${SUCCESS}"
     else  # if requirement fails to install
         kill -9 $SPIN_PID 2>/dev/null
-        printf "%b[ %b ] ANSIBLE:\tSomething failed!\\n" "${OVERWRITE}" "${FAILURE}"
+        printf "%b[ %b ]  ANSIBLE:\tSomething failed!\\n" "${OVERWRITE}" "${FAILURE}"
     fi
     set -e
 }
@@ -339,16 +339,16 @@ install_ansible_dependencies(){
 check_ansible_dependencies(){
     if [[ ! -f "$ANSIBLE_REQUIREMENT_FILE" ]] || [[ "$DRY_RUN" ]]; then
         REQUIREMENT_URL="https://raw.githubusercontent.com/WhaleJ84/duct-tape/$GIT_BRANCH/requirements.yml"
-        spinner_text "ANSIBLE" "Pulling requirements" &
+        spinner_text " ANSIBLE" "Pulling requirements" &
         SPIN_PID="$!"
         trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
         set +e
         if curl "$REQUIREMENT_URL" -so "$ANSIBLE_REQUIREMENT_FILE" &>/dev/null; then  # if requirement file successfully downloads
             kill -9 $SPIN_PID 2>/dev/null
-            printf "%b[ %b ] ANSIBLE:\tPulled requirements file\\n" "${OVERWRITE}" "${SUCCESS}"
+            printf "%b[ %b ]  ANSIBLE:\tPulled requirements file\\n" "${OVERWRITE}" "${SUCCESS}"
         else
             kill -9 $SPIN_PID 2>/dev/null
-            printf "%b[ %b ] ANSIBLE:\tFailed to pull requirements" "${OVERWRITE}" "${FAILURE}"
+            printf "%b[ %b ]  ANSIBLE:\tFailed to pull requirements" "${OVERWRITE}" "${FAILURE}"
         fi
         set -e
         # install_ansible_dependencies
