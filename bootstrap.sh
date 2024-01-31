@@ -341,12 +341,13 @@ check_ansible_dependencies(){
         spinner_text "ANSIBLE" "Pulling requirements" &
         SPIN_PID="$!"
         trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
+        set +e
         if curl "$REQUIREMENT_URL" -so "$ANSIBLE_REQUIREMENT_FILE" &>/dev/null; then  # if requirement file successfully downloads
             kill -9 $SPIN_PID 2>/dev/null
             printf "%b[ %b ] ANSIBLE:\tPulled requirements file\\n" "${OVERWRITE}" "${SUCCESS}"
         else
             kill -9 $SPIN_PID 2>/dev/null
-            printf "%b[ %b ] ANSIBLE:\tPulling requirements" "${OVERWRITE}" "${FAILURE}"
+            printf "%b[ %b ] ANSIBLE:\tFailed to pull requirements" "${OVERWRITE}" "${FAILURE}"
         fi
         set -e
         # install_ansible_dependencies
@@ -386,4 +387,4 @@ check_git_branch
 # Ensire the relevant ansible dependencies are installed
 check_ansible_dependencies
 
-[ $DRY_RUN == 0 ] && ansible-pull -KU https://github.com/WhaleJ84/duct-tape.git
+printf "[ %b ] COMPLETE:\tTo continue configuring system, run:\\n\tansible-pull -KU https://github.com/WhaleJ84/duct-tape.git" "${SUCCESS}"
