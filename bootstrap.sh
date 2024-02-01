@@ -48,8 +48,6 @@ LOGO="::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 ::; duct-tape ;:;::;:::::::;:::::::::;::::::;::;::::::::::;::::::::::::::;::;::
 ::::::::;:::::::::::::;::::::;::;::;:::;::;:::::::;::;::;::::;::;::;::;::::::::
 :::;::;:::::;:::;:::;:::;::;:::::::::::::::::;::;::::::::::;:::::::::::::;::;::"
-set -e
-
 export PY_COLORS='1'
 export ANSIBLE_FORCE_COLOR='1'
 
@@ -125,9 +123,7 @@ tested_os_warning(){
     # Warns if system is not tested and requires explicit flag.
     spinner_text "      OS" "Checking OS distribution" &
     SPIN_PID="$!"
-    echo "tested_os_warning $SPIN_PID"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
-    set +e
     case "$TESTED_OSES" in
         "$DETECTED_OS") \
             kill -9 $SPIN_PID 2>/dev/null && \
@@ -149,7 +145,6 @@ tested_os_warning(){
                 printf "%b[ %b ]       OS:\t%Checked s bypassed in distribution list\\n" "${OVERWRITE}" "${DEBUG}" "${DETECTED_OS}"
             fi ;;
         esac
-    set -e
 }
 
 bypass_version(){
@@ -171,9 +166,7 @@ tested_version_warning(){
     # Warns if version is not tested and requires explicit flag.
     spinner_text "      OS" "Checking OS version" &
     SPIN_PID="$!"
-    echo "tested_version_warning $SPIN_PID"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
-    set +e
     if [ "$DETECTED_OS" == "ubuntu" ]; then
         case "$TESTED_UBUNTU_VERSIONS" in
             "$DETECTED_VERSION") \
@@ -192,16 +185,13 @@ tested_version_warning(){
         printf "%b[ %b ]       OS:\tChecked %s not in any OS version (see '\$DETECTED_*VERSION')" "${OVERWRITE}" "${FAILURE}" "${DETECTED_VERSION}"
         exit 2  # TODO: document unique exit code. This shouldn't really happen so if 2 occurs, then logic weirdness.
     fi
-    set -e
 }
 
 update_apt_repository(){
     # Updates apt repository.
     spinner_text "     APT" "Updating apt repository" &
     SPIN_PID="$!"
-    echo "update_apt_repo $SPIN_PID"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
-    set +e
     if [ "$DRY_RUN" == 0 ]; then  # if application running without `-d` flag
         if apt update &>/dev/null; then  # if repository updates successfully
             kill -9 $SPIN_PID 2>/dev/null
@@ -214,7 +204,6 @@ update_apt_repository(){
         kill -9 $SPIN_PID 2>/dev/null
         printf "%b[ %b ]      APT:\tUpdating apt repository (skipped from dry-run)\\n" "${OVERWRITE}" "${DEBUG}"
     fi
-    set -e
 }
 
 install_apt_dependencies(){
@@ -225,9 +214,7 @@ install_apt_dependencies(){
         for package in $installArray; do
             spinner_text "     APT" "Installing apt install(s) for: $package" &
             SPIN_PID="$!"
-            echo "install_apt_dep $SPIN_PID"
             trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
-            set +e
             if [ "$DRY_RUN" == 0 ]; then  # if application running without `-d` flag
                 if apt install -y "$package" &>/dev/null; then  # if package installs correctly
                     kill -9 $SPIN_PID 2>/dev/null
@@ -240,7 +227,6 @@ install_apt_dependencies(){
                 kill -9 $SPIN_PID 2>/dev/null
                 printf "%b[ %b ]      APT:\tInstalling apt install(s) for: %s (skipped from dry-run)\\n" "${OVERWRITE}" "${DEBUG}" "$package"
             fi
-            set -e
         done
     fi
 }
@@ -250,9 +236,7 @@ check_apt_dependencies(){
     for i in "$@"; do
         spinner_text "     APT" "Checking for ${i}" &
         SPIN_PID="$!"
-        echo "check_apt_dep $SPIN_PID"
         trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
-        set +e
         if dpkg-query -W -f='${Status}' "${i}" 2>/dev/null | grep "ok installed" &>/dev/null; then  # if apt package is installed
             kill -9 $SPIN_PID 2>/dev/null
             printf "%b[ %b ]      APT:\tChecked for %s\\n" "${OVERWRITE}" "${SUCCESS}" "${i}"
@@ -261,7 +245,6 @@ check_apt_dependencies(){
             printf "%b[ %b ]      APT:\tChecked for %s (will be installed)\\n" "${OVERWRITE}" "${FAILURE}" "${i}"
             installArray="$installArray$i "
         fi
-        set -e
     done
     update_apt_repository
     install_apt_dependencies
@@ -270,9 +253,7 @@ check_apt_dependencies(){
 add_apt_repository(){
     spinner_text "     APT" "Adding apt repository: $2:$1" &
     SPIN_PID="$!"
-    echo "add_apt_repo $SPIN_PID"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
-    set +e
     if [ "$DRY_RUN" == 0 ]; then  # if application running without `-d` flag
         if add-apt-repository --yes "$2:$1" &>/dev/null; then  # if apt repository is installed
             kill -9 $SPIN_PID 2>/dev/null
@@ -285,7 +266,6 @@ add_apt_repository(){
         kill -9 $SPIN_PID 2>/dev/null
         printf "%b[ %b ]      APT:\tAdded apt repository: %s (skipped from dry-run)\\n" "${OVERWRITE}" "${DEBUG}" "$2:$1"
     fi
-    set -e
 }
 
 check_apt_repository(){
@@ -295,9 +275,7 @@ check_apt_repository(){
     fi
     spinner_text "      APT" "Checking apt repository: $repo:$1" &
     SPIN_PID="$!"
-    echo "check_apt_repo $SPIN_PID"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
-    set +e
     if apt-cache policy | grep "$1" &>/dev/null; then  # if apt repository is installed
         kill -9 $SPIN_PID 2>/dev/null
         printf "%b[ %b ]      APT:\tChecked apt repository: %s\\n" "${OVERWRITE}" "${SUCCESS}" "$repo:$1"
@@ -306,15 +284,12 @@ check_apt_repository(){
         printf "%b[ %b ]      APT:\tChecked apt repository: %s (will be installed)\\n" "${OVERWRITE}" "${FAILURE}" "$repo:$1"
         add_apt_repository "$1" "$repo"
     fi
-    set -e
 }
 
 check_git_branch(){
     spinner_text "     GIT" "Checking branch" &
     SPIN_PID="$!"
-    echo "check_git_br $SPIN_PID"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
-    set +e
     if [ "$(git rev-parse --abbrev-ref HEAD 2>/dev/null)" ]; then  # if a Git branch is detected
         GIT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
         kill -9 $SPIN_PID 2>/dev/null
@@ -324,17 +299,14 @@ check_git_branch(){
         kill -9 $SPIN_PID 2>/dev/null
         printf "%b[ %b ]      GIT:\tUsing %s branch by default\\n" "${OVERWRITE}" "${SUCCESS}" "$GIT_BRANCH"
     fi
-    set -e
     ANSIBLE_REQUIREMENT_FILE="/tmp/$GIT_BRANCH-requirements.yml"
 }
 
 install_ansible_dependencies(){
     spinner_text " ANSIBLE" "Installing requirements" &
-    [ "$DRY_RUN" ] && flag="--force" || flag=""
+    [ "$DRY_RUN" ] && flag="--force" || flag=""  # TODO: revise this!
     SPIN_PID="$!"
-    echo "install_ansible_dep $SPIN_PID"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
-    set +e
     if [ "$DRY_RUN" == 0 ]; then  # if application running without `-d` flag
         if ansible-galaxy install ${flag} -r "$ANSIBLE_REQUIREMENT_FILE" &>/dev/null; then  # if requirement successfully installs
             kill -9 $SPIN_PID 2>/dev/null
@@ -347,16 +319,13 @@ install_ansible_dependencies(){
         kill -9 $SPIN_PID 2>/dev/null
         printf "%b[ %b ]  ANSIBLE:\tInstalling requirements (skipped from dry-run)\\n" "${OVERWRITE}" "${DEBUG}"
     fi
-    set -e
 }
 
 check_ansible_dependencies(){
     REQUIREMENT_URL="https://raw.githubusercontent.com/WhaleJ84/duct-tape/$GIT_BRANCH/requirements.yml"
     spinner_text " ANSIBLE" "Pulling requirements" &
     SPIN_PID="$!"
-    echo "check_ansible_dep $SPIN_PID"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
-    set +e
     if [[ ! -f "$ANSIBLE_REQUIREMENT_FILE" ]]; then
         if curl "$REQUIREMENT_URL" -so "$ANSIBLE_REQUIREMENT_FILE" &>/dev/null; then  # if requirement file successfully downloads
             kill -9 $SPIN_PID 2>/dev/null
@@ -365,7 +334,6 @@ check_ansible_dependencies(){
             kill -9 $SPIN_PID 2>/dev/null
             printf "%b[ %b ]  ANSIBLE:\tFailed to pull requirements\\n" "${OVERWRITE}" "${FAILURE}"
         fi
-        set -e
     else
         kill -9 $SPIN_PID 2>/dev/null
         printf "%b[ %b ]  ANSIBLE:\tFound requirements file\\n" "${OVERWRITE}" "${SUCCESS}"
