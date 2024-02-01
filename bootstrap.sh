@@ -69,6 +69,7 @@ OVERWRITE='\r\033[K'
 DRY_RUN=0
 BYPASS_CHECKS=0
 FORCE=0
+SKIP_UPDATE=0
 
 usage(){
     cat << EOF
@@ -191,17 +192,22 @@ update_apt_repository(){
     spinner_text "     APT" "Updating apt repository" &
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
-    if [ "$DRY_RUN" == 0 ]; then  # if application running without `-d` flag
-        if apt update &>/dev/null; then  # if repository updates successfully
+    if [ "$SKIP_UPDATE" == 0 ]; then  # normal operation
+        if [ "$DRY_RUN" == 0 ]; then  # if application running without `-d` flag
+            if apt update &>/dev/null; then  # if repository updates successfully
+                kill -9 $SPIN_PID 2>/dev/null
+                printf "%b[ %b ]      APT:\tUpdated apt repository\\n" "${OVERWRITE}" "${SUCCESS}"
+            else  # if repository fails to update
+                kill -9 $SPIN_PID 2>/dev/null
+                printf "%b[ %b ]      APT:\tUpdating apt repository\\n" "${OVERWRITE}" "${FAILURE}"
+            fi
+        else  # if application running without `-d` flag
             kill -9 $SPIN_PID 2>/dev/null
-            printf "%b[ %b ]      APT:\tUpdated apt repository\\n" "${OVERWRITE}" "${SUCCESS}"
-        else  # if repository fails to update
-            kill -9 $SPIN_PID 2>/dev/null
-            printf "%b[ %b ]      APT:\tUpdating apt repository\\n" "${OVERWRITE}" "${FAILURE}"
+            printf "%b[ %b ]      APT:\tUpdating apt repository (skipped from dry-run)\\n" "${OVERWRITE}" "${DEBUG}"
         fi
-    else  # if application running without `-d` flag
+    else
         kill -9 $SPIN_PID 2>/dev/null
-        printf "%b[ %b ]      APT:\tUpdating apt repository (skipped from dry-run)\\n" "${OVERWRITE}" "${DEBUG}"
+        printf "%b[ %b ]      APT:\tUpdate apt repository not needed\\n" "${OVERWRITE}" "${SUCCESS}"
     fi
 }
 
@@ -278,6 +284,7 @@ check_apt_repository(){
     if apt-cache policy | grep "$1" &>/dev/null; then  # if apt repository is installed
         kill -9 $SPIN_PID 2>/dev/null
         printf "%b[ %b ]      APT:\tChecked apt repository: %s\\n" "${OVERWRITE}" "${SUCCESS}" "$repo:$1"
+        SKIP_UPDATE=1
     else  # if apt repository isn't installed
         kill -9 $SPIN_PID 2>/dev/null
         printf "%b[ %b ]      APT:\tChecked apt repository: %s (will be installed)\\n" "${OVERWRITE}" "${FAILURE}" "$repo:$1"
@@ -307,7 +314,7 @@ install_ansible_dependencies(){
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
     if [ "$DRY_RUN" == 0 ]; then  # if application running without `-d` flag
-        if ansible-galaxy install ${flag} -r "$ANSIBLE_REQUIREMENT_FILE" &>/dev/null; then  # if requirement successfully installs
+        if sudo -u "$SUDO_USER" ansible-galaxy install ${flag} -r "$ANSIBLE_REQUIREMENT_FILE" &>/dev/null; then  # if requirement successfully installs
             kill -9 $SPIN_PID 2>/dev/null
             printf "%b[ %b ]  ANSIBLE:\tInstalled requirements\\n" "${OVERWRITE}" "${SUCCESS}"
         else  # if requirement fails to install
