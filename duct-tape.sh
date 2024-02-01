@@ -70,6 +70,8 @@ DRY_RUN=0
 BYPASS_CHECKS=0
 FORCE=0
 SKIP_UPDATE=0
+TOTAL_CHECKS=0
+PASSED_CHECKS=0
 
 usage(){
     cat << EOF
@@ -121,13 +123,15 @@ spinner_text(){
 tested_os_warning(){
     # Checks if detected OS is in list of tested OSes.
     # Warns if system is not tested and requires explicit flag.
+    TOTAL_CHECKS=$(expr "$TOTAL_CHECKS" + 1)
     spinner_text "      OS" "Checking OS distribution" &
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
     case "$TESTED_OSES" in
         "$DETECTED_OS") \
             kill -9 $SPIN_PID 2>/dev/null && \
-            printf "%b[ %b ]       OS:\tChecked %s in distribution list\\n" "${OVERWRITE}" "${SUCCESS}" "${DETECTED_OS}" ;;
+            printf "%b[ %b ]       OS:\tChecked %s in distribution list\\n" "${OVERWRITE}" "${SUCCESS}" "${DETECTED_OS}"
+            PASSED_CHECKS=$(expr "$PASSED_CHECKS" + 1) ;;
         *) \
             if [ "$BYPASS_CHECKS" == 0 ]; then \
                 kill -9 $SPIN_PID 2>/dev/null && \
@@ -143,6 +147,7 @@ tested_os_warning(){
                     TIMER=$(expr "$TIMER" - 1) 
                 done
                 printf "%b[ %b ]       OS:\t%Checked s bypassed in distribution list\\n" "${OVERWRITE}" "${DEBUG}" "${DETECTED_OS}"
+                PASSED_CHECKS=$(expr "$PASSED_CHECKS" + 1)
             fi ;;
         esac
 }
@@ -164,6 +169,7 @@ bypass_version(){
 tested_version_warning(){
     # Checks if detected version is in list of tested versions.
     # Warns if version is not tested and requires explicit flag.
+    TOTAL_CHECKS=$(expr "$TOTAL_CHECKS" + 1)
     spinner_text "      OS" "Checking OS version" &
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
@@ -171,7 +177,8 @@ tested_version_warning(){
         case "$TESTED_UBUNTU_VERSIONS" in
             "$DETECTED_VERSION") \
                 kill -9 $SPIN_PID 2>/dev/null && \
-                printf "%b[ %b ]       OS:\tChecked %s in version list\\n" "${OVERWRITE}" "${SUCCESS}" "${DETECTED_VERSION}" ;;
+                printf "%b[ %b ]       OS:\tChecked %s in version list\\n" "${OVERWRITE}" "${SUCCESS}" "${DETECTED_VERSION}"
+                PASSED_CHECKS=$(expr "$PASSED_CHECKS" + 1) ;;
             *) \
                 kill -9 $SPIN_PID 2>/dev/null && \
                 if [ "$BYPASS_CHECKS" == 0 ]; then \
@@ -189,6 +196,7 @@ tested_version_warning(){
 
 update_apt_repository(){
     # Updates apt repository.
+    TOTAL_CHECKS=$(expr "$TOTAL_CHECKS" + 1)
     spinner_text "     APT" "Updating apt repository" &
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
@@ -197,6 +205,7 @@ update_apt_repository(){
             if apt update &>/dev/null; then  # if repository updates successfully
                 kill -9 $SPIN_PID 2>/dev/null
                 printf "%b[ %b ]      APT:\tUpdated apt repository\\n" "${OVERWRITE}" "${SUCCESS}"
+                PASSED_CHECKS=$(expr "$PASSED_CHECKS" + 1)
             else  # if repository fails to update
                 kill -9 $SPIN_PID 2>/dev/null
                 printf "%b[ %b ]      APT:\tUpdating apt repository\\n" "${OVERWRITE}" "${FAILURE}"
@@ -204,10 +213,12 @@ update_apt_repository(){
         else  # if application running without `-d` flag
             kill -9 $SPIN_PID 2>/dev/null
             printf "%b[ %b ]      APT:\tUpdating apt repository (skipped from dry-run)\\n" "${OVERWRITE}" "${DEBUG}"
+            PASSED_CHECKS=$(expr "$PASSED_CHECKS" + 1)
         fi
     else
         kill -9 $SPIN_PID 2>/dev/null
         printf "%b[ %b ]      APT:\tUpdate apt repository not needed\\n" "${OVERWRITE}" "${SUCCESS}"
+        PASSED_CHECKS=$(expr "$PASSED_CHECKS" + 1)
     fi
 }
 
@@ -217,6 +228,7 @@ install_apt_dependencies(){
     # Displays a message reflecting installation outcome.
     if [[ "${#installArray[@]}" -gt 0 ]]; then
         for package in $installArray; do
+            TOTAL_CHECKS=$(expr "$TOTAL_CHECKS" + 1)
             spinner_text "     APT" "Installing apt install(s) for: $package" &
             SPIN_PID="$!"
             trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
@@ -224,6 +236,7 @@ install_apt_dependencies(){
                 if apt install -y "$package" &>/dev/null; then  # if package installs correctly
                     kill -9 $SPIN_PID 2>/dev/null
                     printf "%b[ %b ]      APT:\tInstalled apt install(s) for: %s\\n" "${OVERWRITE}" "${SUCCESS}" "$package"
+                    PASSED_CHECKS=$(expr "$PASSED_CHECKS" + 1)
                 else  # if package fails to install
                     kill -9 $SPIN_PID 2>/dev/null
                     printf "%b[ %b ]      APT:\tInstalling apt install(s) for: %s\\n" "${OVERWRITE}" "${FAILURE}" "$package"
@@ -231,6 +244,7 @@ install_apt_dependencies(){
             else  # if application running with `-d` flag
                 kill -9 $SPIN_PID 2>/dev/null
                 printf "%b[ %b ]      APT:\tInstalling apt install(s) for: %s (skipped from dry-run)\\n" "${OVERWRITE}" "${DEBUG}" "$package"
+                PASSED_CHECKS=$(expr "$PASSED_CHECKS" + 1)
             fi
         done
     fi
@@ -239,12 +253,14 @@ install_apt_dependencies(){
 check_apt_dependencies(){
     installArray=""
     for i in "$@"; do
+        TOTAL_CHECKS=$(expr "$TOTAL_CHECKS" + 1)
         spinner_text "     APT" "Checking for ${i}" &
         SPIN_PID="$!"
         trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
         if dpkg-query -W -f='${Status}' "${i}" 2>/dev/null | grep "ok installed" &>/dev/null; then  # if apt package is installed
             kill -9 $SPIN_PID 2>/dev/null
             printf "%b[ %b ]      APT:\tChecked for %s\\n" "${OVERWRITE}" "${SUCCESS}" "${i}"
+            PASSED_CHECKS=$(expr "$PASSED_CHECKS" + 1)
         else  # if apt package isn't installed
             kill -9 $SPIN_PID 2>/dev/null
             printf "%b[ %b ]      APT:\tChecked for %s (will be installed)\\n" "${OVERWRITE}" "${FAILURE}" "${i}"
@@ -256,6 +272,7 @@ check_apt_dependencies(){
 }
 
 add_apt_repository(){
+    TOTAL_CHECKS=$(expr "$TOTAL_CHECKS" + 1)
     spinner_text "     APT" "Adding apt repository: $2:$1" &
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
@@ -263,6 +280,7 @@ add_apt_repository(){
         if add-apt-repository --yes "$2:$1" &>/dev/null; then  # if apt repository is installed
             kill -9 $SPIN_PID 2>/dev/null
             printf "%b[ %b ]      APT:\tAdded apt repository: %s\\n" "${OVERWRITE}" "${SUCCESS}" "$2:$1"
+            PASSED_CHECKS=$(expr "$PASSED_CHECKS" + 1)
         else  # if apt repository isn't installed
             kill -9 $SPIN_PID 2>/dev/null
             printf "%b[ %b ]      APT:\tAdding apt repository: %s\\n" "${OVERWRITE}" "${FAILURE}" "$2:$1"
@@ -270,10 +288,12 @@ add_apt_repository(){
     else  # if application running with `-d` flag
         kill -9 $SPIN_PID 2>/dev/null
         printf "%b[ %b ]      APT:\tAdded apt repository: %s (skipped from dry-run)\\n" "${OVERWRITE}" "${DEBUG}" "$2:$1"
+        PASSED_CHECKS=$(expr "$PASSED_CHECKS" + 1)
     fi
 }
 
 check_apt_repository(){
+    TOTAL_CHECKS=$(expr "$TOTAL_CHECKS" + 1)
     repo="ppa"
     if [ -n "$2" ]; then
         repo="$2"
@@ -284,6 +304,7 @@ check_apt_repository(){
     if apt-cache policy | grep "$1" &>/dev/null; then  # if apt repository is installed
         kill -9 $SPIN_PID 2>/dev/null
         printf "%b[ %b ]      APT:\tChecked apt repository: %s\\n" "${OVERWRITE}" "${SUCCESS}" "$repo:$1"
+        PASSED_CHECKS=$(expr "$PASSED_CHECKS" + 1)
         SKIP_UPDATE=1
     else  # if apt repository isn't installed
         kill -9 $SPIN_PID 2>/dev/null
@@ -293,6 +314,7 @@ check_apt_repository(){
 }
 
 check_git_branch(){
+    TOTAL_CHECKS=$(expr "$TOTAL_CHECKS" + 1)
     spinner_text "     GIT" "Checking branch" &
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
@@ -305,10 +327,12 @@ check_git_branch(){
         kill -9 $SPIN_PID 2>/dev/null
         printf "%b[ %b ]      GIT:\tUsing %s branch by default\\n" "${OVERWRITE}" "${SUCCESS}" "$GIT_BRANCH"
     fi
+    PASSED_CHECKS=$(expr "$PASSED_CHECKS" + 1)
     ANSIBLE_REQUIREMENT_FILE="/tmp/$GIT_BRANCH-requirements.yml"
 }
 
 install_ansible_dependencies(){
+    TOTAL_CHECKS=$(expr "$TOTAL_CHECKS" + 1)
     spinner_text " ANSIBLE" "Installing requirements" &
     [ "$FORCE" ] && flag="--force" || flag=""
     SPIN_PID="$!"
@@ -317,6 +341,7 @@ install_ansible_dependencies(){
         if sudo -u "$SUDO_USER" ansible-galaxy install ${flag} -r "$ANSIBLE_REQUIREMENT_FILE" &>/dev/null; then  # if requirement successfully installs
             kill -9 $SPIN_PID 2>/dev/null
             printf "%b[ %b ]  ANSIBLE:\tInstalled requirements\\n" "${OVERWRITE}" "${SUCCESS}"
+            PASSED_CHECKS=$(expr "$PASSED_CHECKS" + 1)
         else  # if requirement fails to install
             kill -9 $SPIN_PID 2>/dev/null
             printf "%b[ %b ]  ANSIBLE:\tSomething failed!\\n" "${OVERWRITE}" "${FAILURE}"
@@ -324,10 +349,12 @@ install_ansible_dependencies(){
     else  # if application running with `-d` flag
         kill -9 $SPIN_PID 2>/dev/null
         printf "%b[ %b ]  ANSIBLE:\tInstalling requirements (skipped from dry-run)\\n" "${OVERWRITE}" "${DEBUG}"
+        PASSED_CHECKS=$(expr "$PASSED_CHECKS" + 1)
     fi
 }
 
 check_ansible_dependencies(){
+    TOTAL_CHECKS=$(expr "$TOTAL_CHECKS" + 1)
     REQUIREMENT_URL="https://raw.githubusercontent.com/WhaleJ84/duct-tape/$GIT_BRANCH/requirements.yml"
     spinner_text " ANSIBLE" "Pulling requirements" &
     SPIN_PID="$!"
@@ -336,6 +363,7 @@ check_ansible_dependencies(){
         if curl "$REQUIREMENT_URL" -so "$ANSIBLE_REQUIREMENT_FILE" &>/dev/null; then  # if requirement file successfully downloads
             kill -9 $SPIN_PID 2>/dev/null
             printf "%b[ %b ]  ANSIBLE:\tPulled requirements file\\n" "${OVERWRITE}" "${SUCCESS}"
+            PASSED_CHECKS=$(expr "$PASSED_CHECKS" + 1)
         else
             kill -9 $SPIN_PID 2>/dev/null
             printf "%b[ %b ]  ANSIBLE:\tFailed to pull requirements\\n" "${OVERWRITE}" "${FAILURE}"
@@ -343,6 +371,7 @@ check_ansible_dependencies(){
     else
         kill -9 $SPIN_PID 2>/dev/null
         printf "%b[ %b ]  ANSIBLE:\tFound requirements file\\n" "${OVERWRITE}" "${SUCCESS}"
+        PASSED_CHECKS=$(expr "$PASSED_CHECKS" + 1)
     fi
     install_ansible_dependencies
 }
@@ -379,6 +408,8 @@ check_git_branch
 
 # Ensire the relevant ansible dependencies are installed
 check_ansible_dependencies
+
+printf "[ %b ] COMPLETE:\t%s checks completed of %s. Rerun if not matching\\n" "${SUCCESS}" "${PASSED_CHECKS}" "${TOTAL_CHECKS}"
 
 # TODO: Ensure all tasks ran successfully before showing this
 printf "[ %b ] COMPLETE:\tTo continue configuring system, run:\\n\tansible-pull -KU https://github.com/WhaleJ84/duct-tape.git\\n" "${SUCCESS}"
