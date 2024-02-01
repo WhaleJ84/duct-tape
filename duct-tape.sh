@@ -376,6 +376,20 @@ check_ansible_dependencies(){
     install_ansible_dependencies
 }
 
+check_succcessful_tasks(){
+    spinner_text "CHECKING" "Comparing tasks" &
+    SPIN_PID="$!"
+    trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
+    if [ "$TOTAL_CHECKS" == "$PASSED_CHECKS" ]; then
+        kill -9 $SPIN_PID 2>/dev/null
+        message="Script ran successfully"
+    else
+        kill -9 $SPIN_PID 2>/dev/null
+        message="Rerun script"
+    fi
+    printf "[ %b ] COMPLETE:\t%s checks completed of %s. %s\\n" "${SUCCESS}" "${PASSED_CHECKS}" "${TOTAL_CHECKS}" "${message}"
+}
+
 while getopts bdfhs arg; do
     case "$arg" in
         b) BYPASS_CHECKS=1 ;;
@@ -409,7 +423,7 @@ check_git_branch
 # Ensire the relevant ansible dependencies are installed
 check_ansible_dependencies
 
-printf "[ %b ] COMPLETE:\t%s checks completed of %s. Rerun if not matching\\n" "${SUCCESS}" "${PASSED_CHECKS}" "${TOTAL_CHECKS}"
+# Inform user of number of successful tasks
+check_succcessful_tasks
 
-# TODO: Ensure all tasks ran successfully before showing this
 printf "[ %b ] COMPLETE:\tTo continue configuring system, run:\\n\tansible-pull -KU https://github.com/WhaleJ84/duct-tape.git\\n" "${SUCCESS}"
