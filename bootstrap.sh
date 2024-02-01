@@ -57,7 +57,6 @@ DETECTED_VERSION=$(grep VERSION_ID /etc/os-release | cut -d '=' -f2 | tr -d '"')
 TESTED_UBUNTU_VERSIONS="20.04"
 PRE_APT_DEPENDENCIES="software-properties-common"
 APT_DEPENDENCIES="ansible git"
-ANSIBLE_PATH="/home/$SUDO_USER/.local/bin"
 
 COL_NC='\e[0m'
 COL_LIGHT_GREEN='\e[1;32m'
@@ -69,20 +68,21 @@ DEBUG="${COL_LIGHT_BLUE}?${COL_NC}"
 OVERWRITE='\r\033[K'
 DRY_RUN=0
 BYPASS_CHECKS=0
+FORCE=0
 
 usage(){
     cat << EOF
-Usage: duct-tape [OPTION]
-Installs the relevant requirements to get Ansible installed on the system
-and pull down desired runbooks from Git repository.
+Usage: duct-tape [OPTION]...
+Installs the relevant requirements to get Ansible installed on 
+the system and pull down desired runbooks from Git repository.
 
 OPTIONS:
     -b      Bypass OS check. Run script on untested systems
     -d      Perform dry run. Do not make any modifications
+    -f      Force the program to redownload requirements where possible
     -h      Display this message and exit
     -s      Display supported operating systems and versions and exit
 EOF
-    exit 0
 }
 
 supported(){
@@ -97,7 +97,6 @@ supported(){
             printf "        %s\\n" "$version"
         done
     done
-    exit 0
 }
 
 spinner_text(){
@@ -304,7 +303,7 @@ check_git_branch(){
 
 install_ansible_dependencies(){
     spinner_text " ANSIBLE" "Installing requirements" &
-    [ "$DRY_RUN" ] && flag="--force" || flag=""  # TODO: revise this!
+    [ "$FORCE" ] && flag="--force" || flag=""
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
     if [ "$DRY_RUN" == 0 ]; then  # if application running without `-d` flag
@@ -341,18 +340,18 @@ check_ansible_dependencies(){
     install_ansible_dependencies
 }
 
-while getopts bdhs arg; do
+while getopts bdfhs arg; do
     case "$arg" in
         b) BYPASS_CHECKS=1 ;;
         d) DRY_RUN=1 ;;
-        h) usage ;;
-        s) supported ;;
-        ?) usage ;;
+        f) FORCE=1 ;;
+        h) usage && exit 0 ;;
+        s) supported && exit 0 ;;
+        ?) usage | head -1 && printf "Try 'duct-tape -h' for more information.\\n" && exit 0 ;;
     esac
-done
+done 2>/dev/null
 
 # TODO: Make keyboard interrupts kill script entirely
-# TODO: Put install tasks inside check tasks and only run them if not in test mode
 printf "%s\\n" "$LOGO"
 sleep 1
 [ $DRY_RUN == 1 ] && printf "[ %b ]    DEBUG:\tRunning in dry run mode           No modifications will be made\\n" "${DEBUG}"
@@ -374,4 +373,5 @@ check_git_branch
 # Ensire the relevant ansible dependencies are installed
 check_ansible_dependencies
 
+# TODO: Ensure all tasks ran successfully before showing this
 printf "[ %b ] COMPLETE:\tTo continue configuring system, run:\\n\tansible-pull -KU https://github.com/WhaleJ84/duct-tape.git\\n" "${SUCCESS}"
