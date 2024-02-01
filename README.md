@@ -19,19 +19,19 @@ To initiate the installation process, run the bootstrapping script with one of t
 
 ```shell
 # remotely
-curl -s https://raw.githubusercontent.com/WhaleJ84/duct-tape/dev/bootstrap.sh | sudo bash
+curl -s https://raw.githubusercontent.com/WhaleJ84/duct-tape/dev/duct-tape.sh | sudo bash
 
 # shorter URL for above
-curl -sL duct-tape.james-whale.com | sudo bash
+curl -sL dt-dev.james-whale.com | sudo bash
 
 # locally
-./PATH/TO/bootstrap.sh
+./PATH/TO/duct-tape.sh
 
 # simulate curl locally
-curl -s file:///PATH/TO/bootstrap.sh | bash
+curl -s file:///PATH/TO/duct-tape.sh | bash
 
 # to pass arguments to the script (e.g. `-h`)
-curl -s file:///PATH/TO/bootstrap.sh | bash -s - -h
+curl -s file:///PATH/TO/duct-tape.sh | bash -s - -h
 ```
 
 When testing ansible locally, the bootstrap will only pull from the remote repository.
