@@ -140,13 +140,13 @@ tested_os_warning(){
             else \
                 TIMER=3 && \
                 kill -9 $SPIN_PID 2>/dev/null && \
-                printf "\r%b[ %b ]       OS:\t%Checked s bypassed in distribution list (%s SECONDS TO CANCEL)" "${OVERWRITE}" "${DEBUG}" "${DETECTED_OS}" "${TIMER}" && \
+                printf "\r%b[ %b ]       OS:\tChecked %s bypassed in distribution list (%s SECONDS TO CANCEL)" "${OVERWRITE}" "${DEBUG}" "${DETECTED_OS}" "${TIMER}" && \
                 while [ "$TIMER" -gt 0 ]; do
-                    printf "\r%b[ %b ]       OS:\t%Checked s bypassed in distribution list (%s SECONDS TO CANCEL)" "${OVERWRITE}" "${DEBUG}" "${DETECTED_OS}" "${TIMER}" && \
+                    printf "\r%b[ %b ]       OS:\tChecked %s bypassed in distribution list (%s SECONDS TO CANCEL)" "${OVERWRITE}" "${DEBUG}" "${DETECTED_OS}" "${TIMER}" && \
                     sleep 1 && \
                     TIMER=$(expr "$TIMER" - 1) 
                 done
-                printf "\r%b[ %b ]       OS:\t%Checked s bypassed in distribution list\\n" "${OVERWRITE}" "${DEBUG}" "${DETECTED_OS}"
+                printf "\r%b[ %b ]       OS:\tChecked %s bypassed in distribution list\\n" "${OVERWRITE}" "${DEBUG}" "${DETECTED_OS}"
                 PASSED_CHECKS=$(expr "$PASSED_CHECKS" + 1)
             fi ;;
         esac
@@ -157,13 +157,13 @@ bypass_version(){
     # Called in `tested_version_warning`.
     TIMER=3
     kill -9 $SPIN_PID 2>/dev/null
-    printf "\r%b[ %b ]       OS:\t%Checked s bypassed in version list (%s SECONDS TO CANCEL)" "${OVERWRITE}" "${DEBUG}" "${DETECTED_VERSION}" "${TIMER}"
+    printf "\r%b[ %b ]       OS:\tChecked %s bypassed in version list (%s SECONDS TO CANCEL)" "${OVERWRITE}" "${DEBUG}" "${DETECTED_VERSION}" "${TIMER}"
     while [ "$TIMER" -gt 0 ]; do
-        printf "\r%b[ %b ]       OS:\t%Checked s bypassed in version list (%s SECONDS TO CANCEL)" "${OVERWRITE}" "${DEBUG}" "${DETECTED_VERSION}" "${TIMER}"
+        printf "\r%b[ %b ]       OS:\tChecked %s bypassed in version list (%s SECONDS TO CANCEL)" "${OVERWRITE}" "${DEBUG}" "${DETECTED_VERSION}" "${TIMER}"
         sleep 1
         TIMER=$(expr "$TIMER" - 1)
     done
-    printf "\r%b[ %b ]       OS:\t%Checked s bypassed in version list\\n" "${OVERWRITE}" "${DEBUG}" "${DETECTED_VERSION}"
+    printf "\r%b[ %b ]       OS:\tChecked %s bypassed in version list\\n" "${OVERWRITE}" "${DEBUG}" "${DETECTED_VERSION}"
 }
 
 tested_version_warning(){
