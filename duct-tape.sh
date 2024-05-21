@@ -54,7 +54,7 @@ export ANSIBLE_FORCE_COLOR='1'
 DETECTED_OS=$(grep '^ID=' /etc/os-release | cut -d '=' -f2 | tr -d '"')
 TESTED_OSES="ubuntu"
 DETECTED_VERSION=$(grep VERSION_ID /etc/os-release | cut -d '=' -f2 | tr -d '"')
-TESTED_UBUNTU_VERSIONS="20.04"
+TESTED_UBUNTU_VERSIONS="20.04 24.04"
 PRE_APT_DEPENDENCIES="software-properties-common"
 APT_DEPENDENCIES="ansible git"
 
@@ -128,7 +128,7 @@ tested_os_warning(){
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
     case "$TESTED_OSES" in
-        "$DETECTED_OS") \
+        *"$DETECTED_OS"*) \
             kill -9 $SPIN_PID 2>/dev/null && \
             printf "\r%b[ %b ]       OS:\tChecked %s in distribution list\\n" "${OVERWRITE}" "${SUCCESS}" "${DETECTED_OS}"
             PASSED_CHECKS=$(expr "$PASSED_CHECKS" + 1) ;;
@@ -175,7 +175,7 @@ tested_version_warning(){
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
     if [ "$DETECTED_OS" == "ubuntu" ]; then
         case "$TESTED_UBUNTU_VERSIONS" in
-            "$DETECTED_VERSION") \
+            *"$DETECTED_VERSION"*) \
                 kill -9 $SPIN_PID 2>/dev/null && \
                 printf "\r%b[ %b ]       OS:\tChecked %s in version list\\n" "${OVERWRITE}" "${SUCCESS}" "${DETECTED_VERSION}"
                 PASSED_CHECKS=$(expr "$PASSED_CHECKS" + 1) ;;
