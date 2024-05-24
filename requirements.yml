@@ -23,5 +23,6 @@ roles:
 collections:
   - community.general
 
-  - name: https://github.com/ansibleguy/collection_nftables.git
+  - name: ansibleguy.nftables
+    source: https://github.com/ansibleguy/collection_nftables.git
     type: git
