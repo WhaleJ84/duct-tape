@@ -332,7 +332,7 @@ check_git_branch(){
 }
 
 install_ansible_dependencies(){
-    for dependency in "$1"; do
+    for dependency in $1; do
 	TOTAL_CHECKS=$(expr "$TOTAL_CHECKS" + 1)
 	spinner_text " ANSIBLE" "Installing requirement: $dependency" &
 	[ "$FORCE" ] && flag="--force" || flag=""
@@ -358,8 +358,8 @@ install_ansible_dependencies(){
 
 compare_ansible_dependencies(){
     ROLE_REQUIREMENTS="$(grep name /tmp/dev-requirements.yml | awk '{print $3}' | paste -sd ' ' -)"
+    REQUIRES_INSTALL=""
     for requirement in $ROLE_REQUIREMENTS; do
-	REQUIRES_INSTALL=""
 	TOTAL_CHECKS=$(expr "$TOTAL_CHECKS" + 1)
 	spinner_text " ANSIBLE" "Checking dependency: $requirement" &
 	SPIN_PID="$!"
@@ -373,12 +373,12 @@ compare_ansible_dependencies(){
 	    printf "\r%b[ %b ]  ANSIBLE:\tChecked dependency: %s\\n" "${OVERWRITE}" "${SUCCESS}" "$requirement"
 	    PASSED_CHECKS=$(expr "$PASSED_CHECKS" + 1)
 	else
-	    REQUIRES_INSTALL="$REQUIRES_INSTALL$requirement "
 	    kill -9 $SPIN_PID 2>/dev/null
+	    REQUIRES_INSTALL="$REQUIRES_INSTALL$requirement "
 	    printf "\r%b[ %b ]  ANSIBLE:\tChecked dependency: %s (will be installed)\\n" "${OVERWRITE}" "${FAILURE}" "$requirement"
 	fi
     done
-    [ "$REQUIRES_INSTALL" ] && install_ansible_dependencies $(echo "$REQUIRES_INSTALL" | sed 's/ $//')
+    [ "$REQUIRES_INSTALL" ] && install_ansible_dependencies "$REQUIRES_INSTALL"
 }
 
 check_ansible_dependencies(){
