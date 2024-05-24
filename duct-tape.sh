@@ -332,25 +332,53 @@ check_git_branch(){
 }
 
 install_ansible_dependencies(){
-    TOTAL_CHECKS=$(expr "$TOTAL_CHECKS" + 1)
-    spinner_text " ANSIBLE" "Installing requirements" &
-    [ "$FORCE" ] && flag="--force" || flag=""
-    SPIN_PID="$!"
-    trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
-    if [ "$DRY_RUN" == 0 ]; then  # if application running without `-d` flag
-        if sudo -u "$SUDO_USER" ansible-galaxy install ${flag} -r "$ANSIBLE_REQUIREMENT_FILE" &>/dev/null; then  # if requirement successfully installs
-            kill -9 $SPIN_PID 2>/dev/null
-            printf "\r%b[ %b ]  ANSIBLE:\tInstalled requirements\\n" "${OVERWRITE}" "${SUCCESS}"
-            PASSED_CHECKS=$(expr "$PASSED_CHECKS" + 1)
-        else  # if requirement fails to install
-            kill -9 $SPIN_PID 2>/dev/null
-            printf "\r%b[ %b ]  ANSIBLE:\tSomething failed!\\n" "${OVERWRITE}" "${FAILURE}"
-        fi
-    else  # if application running with `-d` flag
-        kill -9 $SPIN_PID 2>/dev/null
-        printf "\r%b[ %b ]  ANSIBLE:\tInstalling requirements (skipped from dry-run)\\n" "${OVERWRITE}" "${DEBUG}"
-        PASSED_CHECKS=$(expr "$PASSED_CHECKS" + 1)
-    fi
+    for dependency in "$1"; do
+	TOTAL_CHECKS=$(expr "$TOTAL_CHECKS" + 1)
+	spinner_text " ANSIBLE" "Installing requirement: $dependency" &
+	[ "$FORCE" ] && flag="--force" || flag=""
+	SPIN_PID="$!"
+	trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
+	if [ "$DRY_RUN" == 0 ]; then  # if application running without `-d` flag
+	    sudo -u $SUDO_USER ansible-galaxy install ${flag} -r $ANSIBLE_REQUIREMENT_FILE $dependency &>/dev/null
+	    if [ "$?" ]; then  # if requirement successfully installs
+	        kill -9 $SPIN_PID 2>/dev/null
+	        printf "\r%b[ %b ]  ANSIBLE:\tInstalled requirement: %s\\n" "${OVERWRITE}" "${SUCCESS}" "${dependency}"
+	        PASSED_CHECKS=$(expr "$PASSED_CHECKS" + 1)
+	    else  # if requirement fails to install
+	        kill -9 $SPIN_PID 2>/dev/null
+	        printf "\r%b[ %b ]  ANSIBLE:\tInstalling requirement: %s\\n" "${OVERWRITE}" "${FAILURE}" "${dependency}"
+	    fi
+	else  # if application running with `-d` flag
+	    kill -9 $SPIN_PID 2>/dev/null
+	    printf "\r%b[ %b ]  ANSIBLE:\tInstalling requirement: %s (skipped from dry-run)\\n" "${OVERWRITE}" "${DEBUG}" "${dependency}"
+	    PASSED_CHECKS=$(expr "$PASSED_CHECKS" + 1)
+	fi
+    done
+}
+
+compare_ansible_dependencies(){
+    ROLE_REQUIREMENTS="$(grep name /tmp/dev-requirements.yml | awk '{print $3}' | paste -sd ' ' -)"
+    for requirement in $ROLE_REQUIREMENTS; do
+	REQUIRES_INSTALL=""
+	TOTAL_CHECKS=$(expr "$TOTAL_CHECKS" + 1)
+	spinner_text " ANSIBLE" "Checking dependency: $requirement" &
+	SPIN_PID="$!"
+	trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
+	if [ "$(sudo -u $SUDO_USER ansible-galaxy role list $requirement 2>/dev/null)" ]; then
+	    kill -9 $SPIN_PID 2>/dev/null
+	    printf "\r%b[ %b ]  ANSIBLE:\tChecked dependency: %s\\n" "${OVERWRITE}" "${SUCCESS}" "$requirement"
+	    PASSED_CHECKS=$(expr "$PASSED_CHECKS" + 1)
+	elif [ "$(sudo -u $SUDO_USER ansible-galaxy collection list $requirement 2>/dev/null)" ]; then
+	    kill -9 $SPIN_PID 2>/dev/null
+	    printf "\r%b[ %b ]  ANSIBLE:\tChecked dependency: %s\\n" "${OVERWRITE}" "${SUCCESS}" "$requirement"
+	    PASSED_CHECKS=$(expr "$PASSED_CHECKS" + 1)
+	else
+	    REQUIRES_INSTALL="$REQUIRES_INSTALL$requirement "
+	    kill -9 $SPIN_PID 2>/dev/null
+	    printf "\r%b[ %b ]  ANSIBLE:\tChecked dependency: %s (will be installed)\\n" "${OVERWRITE}" "${FAILURE}" "$requirement"
+	fi
+    done
+    [ "$REQUIRES_INSTALL" ] && install_ansible_dependencies $(echo "$REQUIRES_INSTALL" | sed 's/ $//')
 }
 
 check_ansible_dependencies(){
@@ -373,7 +401,7 @@ check_ansible_dependencies(){
         printf "\r%b[ %b ]  ANSIBLE:\tFound requirements file\\n" "${OVERWRITE}" "${SUCCESS}"
         PASSED_CHECKS=$(expr "$PASSED_CHECKS" + 1)
     fi
-    install_ansible_dependencies
+    compare_ansible_dependencies
 }
 
 check_succcessful_tasks(){
