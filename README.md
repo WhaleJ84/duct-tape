@@ -1,7 +1,6 @@
 # duct-tape
 
 Collection of bootstrapping scripts and repos intended for desktop configuration via Ansible-pull.
-Will eventually replace [older repository](https://github.com/WhaleJ84/duct_tape).
 
 **WARNING:** Unless you are me, do not run any of the code you see here.
 This repository is only public for my own convenience reasons.
