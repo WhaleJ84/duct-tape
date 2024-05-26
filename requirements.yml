@@ -3,14 +3,6 @@ roles:
   - name: whalej84.keepassxc
     src: https://github.com/WhaleJ84/ansible-role-keepassxc.git
     scm: git
-    
-  - name: whalej84.nftables
-    src: https://github.com/WhaleJ84/ansible-role-nftables.git
-    scm: git
 
 collections:
   - community.general
-
-  - name: ansibleguy.nftables
-    source: https://github.com/ansibleguy/collection_nftables.git
-    type: git
