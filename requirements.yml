@@ -4,10 +4,6 @@ roles:
     src: https://github.com/WhaleJ84/ansible-role-keepassxc.git
     scm: git
 
-  - name: whalej84.timeshift
-    src: https://github.com/WhaleJ84/ansible-role-timeshift.git
-    scm: git
-
   - name: whalej84.timeshift-autosnap-apt
     src: https://github.com/WhaleJ84/ansible-role-timeshift-autosnap-apt.git
     scm: git
@@ -18,10 +14,6 @@ roles:
     
   - name: whalej84.nftables
     src: https://github.com/WhaleJ84/ansible-role-nftables.git
-    scm: git
-
-  - name: whalej84.firefox
-    src: https://github.com/WhaleJ84/ansible-role-firefox.git
     scm: git
 
 collections:
