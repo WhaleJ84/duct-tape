@@ -34,6 +34,8 @@ curl -s file:///PATH/TO/duct-tape.sh | bash
 curl -s file:///PATH/TO/duct-tape.sh | bash -s - -h
 ```
 
+To run specific Ansible roles after successful installation, you can filter using tags (e.g. `--tags firefox --skip-tags install` to only configure Firefox and not run any other roles). 
+
 When testing ansible locally, the bootstrap will only pull from the remote repository.
 To test the latest local changes, run `ansible-playbook -K local.yml`.
 
