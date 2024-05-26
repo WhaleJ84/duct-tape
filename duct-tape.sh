@@ -454,5 +454,5 @@ check_ansible_dependencies
 # Inform user of number of successful tasks
 check_succcessful_tasks
 
-printf "[ %b ] COMPLETE:\tTo continue configuring system, run:\\n\tansible-pull -KU https://github.com/WhaleJ84/duct-tape.git\\n" "${SUCCESS}"
+printf "[ %b ] COMPLETE:\tTo continue configuring system, run:\\n\tansible-pull -KU https://github.com/WhaleJ84/ansible-pull.git\\n" "${SUCCESS}"
 printf "[ %b ]      TIP:\tSee README on how to configure specific applications\\n" "${SUCCESS}"
