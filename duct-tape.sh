@@ -384,7 +384,7 @@ compare_ansible_dependencies(){
 
 check_ansible_dependencies(){
     TOTAL_CHECKS=$(expr "$TOTAL_CHECKS" + 1)
-    REQUIREMENT_URL="https://raw.githubusercontent.com/WhaleJ84/duct-tape/$GIT_BRANCH/requirements.yml"
+    REQUIREMENT_URL="https://raw.githubusercontent.com/WhaleJ84/ansible-pull/$GIT_BRANCH/requirements.yml"
     spinner_text " ANSIBLE" "Pulling requirements" &
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
