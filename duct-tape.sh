@@ -357,7 +357,7 @@ install_ansible_dependencies(){
 }
 
 compare_ansible_dependencies(){
-    ROLE_REQUIREMENTS="$(grep name /tmp/dev-requirements.yml | awk '{print $3}' | paste -sd ' ' -)"
+    ROLE_REQUIREMENTS="$(grep name /tmp/$GIT_BRANCH-requirements.yml | awk '{print $3}' | paste -sd ' ' -)"
     REQUIRES_INSTALL=""
     for requirement in $ROLE_REQUIREMENTS; do
 	TOTAL_CHECKS=$(expr "$TOTAL_CHECKS" + 1)
