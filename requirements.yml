@@ -4,10 +4,6 @@ roles:
     src: https://github.com/WhaleJ84/ansible-role-keepassxc.git
     scm: git
 
-  - name: whalej84.timeshift-autosnap-apt
-    src: https://github.com/WhaleJ84/ansible-role-timeshift-autosnap-apt.git
-    scm: git
-
   - name: whalej84.pyenv
     src: https://github.com/WhaleJ84/ansible-role-pyenv.git
     scm: git
