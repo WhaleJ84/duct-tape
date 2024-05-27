@@ -45,12 +45,9 @@ LOGO="::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 ::::::::::::::::::::;:;:;:;::::::;::::::;:::::::;::::::.:%8%.;%SSSS;;8;::;:::;:
 ::;::;:::;::;::;::;::::::::::;:::::;::;::::;::;::::::::::;::::;S88t:.::::::;:::
 :::::::;::::::::::::::;::;:::::;::;::::::;::::::::;::;:;::::::;::;::;::;::::::;
-::; duct-tape ;:;::;:::::::;:::::::::;::::::;::;::::::::::;:::::::  v1.0.0  ;::
+::; duct-tape ;:;::;:::::::;:::::::::;::::::;::;::::::::::;:::::::  v1.0.1  ;::
 ::::::::;:::::::::::::;::::::;::;::;:::;::;:::::::;::;::;::::;::;::;::;::::::::
 :::;::;:::::;:::;:::;:::;::;:::::::::::::::::;::;::::::::::;:::::::::::::;::;::"
-export PY_COLORS='1'
-export ANSIBLE_FORCE_COLOR='1'
-
 DETECTED_OS=$(grep '^ID=' /etc/os-release | cut -d '=' -f2 | tr -d '"')
 TESTED_OSES="ubuntu"
 DETECTED_VERSION=$(grep VERSION_ID /etc/os-release | cut -d '=' -f2 | tr -d '"')
@@ -455,5 +452,5 @@ check_ansible_dependencies
 # Inform user of number of successful tasks
 check_succcessful_tasks
 
-printf "[ %b ] COMPLETE:\tTo continue configuring system, run:\\n\tansible-pull -KU https://github.com/WhaleJ84/ansible-pull.git\\n" "${SUCCESS}"
+printf "[ %b ] COMPLETE:\tTo continue configuring system, run:\\nexport PY_COLORS='1' ANSIBLE_FORCE_COLOR='1' && \\\\\nansible-pull -KU https://github.com/WhaleJ84/ansible-pull.git\\n" "${SUCCESS}"
 printf "[ %b ]      TIP:\tSee README on how to configure specific applications\\n" "${SUCCESS}"

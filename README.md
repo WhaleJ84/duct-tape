@@ -18,10 +18,10 @@ To initiate the installation process, run the bootstrapping script with one of t
 
 ```shell
 # remotely
-curl -s https://raw.githubusercontent.com/WhaleJ84/duct-tape/dev/duct-tape.sh | sudo bash
+curl -s https://raw.githubusercontent.com/WhaleJ84/duct-tape/main/duct-tape.sh | sudo bash
 
 # shorter URL for above
-curl -sL dt-dev.james-whale.com | sudo bash
+curl -sL dt.james-whale.com | sudo bash
 
 # locally
 ./PATH/TO/duct-tape.sh
