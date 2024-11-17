@@ -74,7 +74,7 @@ PASSED_CHECKS=0
 
 usage(){
     cat << EOF
-Usage: duct-tape [OPTION]... [-f [REQUIREMENT[ REQUIREMENT]...]]
+Usage: duct-tape [OPTION]... [-f ["REQUIREMENT[ REQUIREMENT]..."]]
 Installs the relevant requirements to get Ansible installed on 
 the system and pull down desired runbooks from Git repository.
 
