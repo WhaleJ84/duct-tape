@@ -424,13 +424,14 @@ check_succcessful_tasks(){
     printf "\r%b[ %b ] COMPLETE:\t%s checks completed of %s. %s\\n" "${OVERWRITE}" "${SUCCESS}" "${PASSED_CHECKS}" "${TOTAL_CHECKS}" "${message}"
 }
 
-while getopts bdfhs arg; do
+while getopts bdfhsv arg; do
     case "$arg" in
         b) BYPASS_CHECKS=1 ;;
         d) DRY_RUN=1 ;;
         f) FORCE=1 ARGS="${!#}" ;;
         h) usage && exit 0 ;;
         s) supported && exit 0 ;;
+	v) echo $VERSION && exit 0 ;;
         ?) usage | head -1 && printf "Try 'duct-tape -h' for more information.\\n" && exit 0 ;;
     esac
 done 2>/dev/null
