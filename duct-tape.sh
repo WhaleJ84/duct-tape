@@ -359,6 +359,7 @@ install_ansible_dependencies(){
 compare_ansible_dependencies(){
     ROLE_REQUIREMENTS="$(grep name /tmp/$GIT_BRANCH-requirements.yml | awk '{print $3}' | paste -sd ' ' -)"
     REQUIRES_INSTALL=""
+    [ "$ARGS" != "-f" ] && ROLE_REQUIREMENTS="$ARGS"
     for requirement in $ROLE_REQUIREMENTS; do
 	TOTAL_CHECKS=$(expr "$TOTAL_CHECKS" + 1)
 	spinner_text " ANSIBLE" "Checking dependency: $requirement" &
@@ -426,7 +427,7 @@ while getopts bdfhs arg; do
     case "$arg" in
         b) BYPASS_CHECKS=1 ;;
         d) DRY_RUN=1 ;;
-        f) FORCE=1 ;;
+        f) FORCE=1 ARGS="${!#}" ;;
         h) usage && exit 0 ;;
         s) supported && exit 0 ;;
         ?) usage | head -1 && printf "Try 'duct-tape -h' for more information.\\n" && exit 0 ;;
