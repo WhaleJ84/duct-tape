@@ -362,10 +362,10 @@ compare_ansible_dependencies(){
 	spinner_text " ANSIBLE" "Checking dependency: $requirement" &
 	SPIN_PID="$!"
 	trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
-	if [ "$FORCE" ]; then
+	if [ "$FORCE" == 1 ]; then
 	    kill -9 $SPIN_PID 2>/dev/null
 	    REQUIRES_INSTALL="$REQUIRES_INSTALL$requirement "
-	    printf "\r%b[ %b ]  ANSIBLE:\tChecked dependency: %s (will be installed)\\n" "${OVERWRITE}" "${FAILURE}" "$requirement"
+	    printf "\r%b[ %b ]  ANSIBLE:\tChecked dependency: %s (force install)\\n" "${OVERWRITE}" "${FAILURE}" "$requirement"
 	elif [ "$(sudo -u $SUDO_USER ansible-galaxy role list $requirement 2>/dev/null)" ]; then
 	    kill -9 $SPIN_PID 2>/dev/null
 	    printf "\r%b[ %b ]  ANSIBLE:\tChecked dependency: %s\\n" "${OVERWRITE}" "${SUCCESS}" "$requirement"
