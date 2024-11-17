@@ -86,6 +86,7 @@ OPTIONS:
 	    string (e.g. "req1 req2 req3"). Must be specified last
     -h      Display this message and exit
     -s      Display supported operating systems and versions and exit
+    -v	    Display version number of duct-tape and exit
 EOF
 }
 
