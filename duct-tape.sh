@@ -73,14 +73,16 @@ PASSED_CHECKS=0
 
 usage(){
     cat << EOF
-Usage: duct-tape [OPTION]...
+Usage: duct-tape [OPTION]... [-f [REQUIREMENT[ REQUIREMENT]...]]
 Installs the relevant requirements to get Ansible installed on 
 the system and pull down desired runbooks from Git repository.
 
 OPTIONS:
     -b      Bypass OS check. Run script on untested systems
     -d      Perform dry run. Do not make any modifications
-    -f      Force the program to redownload requirements where possible
+    -f REQ. Force the program to redownload requirements where possible
+	    Specific requirements can be passed in a space separated 
+	    string (e.g. "req1 req2 req3"). Must be specified last
     -h      Display this message and exit
     -s      Display supported operating systems and versions and exit
 EOF
