@@ -55,6 +55,7 @@ DETECTED_VERSION=$(grep VERSION_ID /etc/os-release | cut -d '=' -f2 | tr -d '"')
 TESTED_UBUNTU_VERSIONS="20.04 24.04"
 PRE_APT_DEPENDENCIES="software-properties-common"
 APT_DEPENDENCIES="ansible git"
+DEV_APT_PACKAGES="ansible-lint yamllint"
 DEFAULT_GIT_BRANCH="main"
 
 COL_NC='\e[0m'
@@ -65,7 +66,9 @@ SUCCESS="${COL_LIGHT_GREEN}*${COL_NC}"
 FAILURE="${COL_LIGHT_RED}x${COL_NC}"
 DEBUG="${COL_LIGHT_BLUE}?${COL_NC}"
 OVERWRITE='\r\033[K'
+
 DRY_RUN=0
+DEV=0
 BYPASS_CHECKS=0
 FORCE=0
 SKIP_UPDATE=0
@@ -81,6 +84,7 @@ the system and pull down desired runbooks from Git repository.
 OPTIONS:
     -b      Bypass OS check. Run script on untested systems
     -d      Perform dry run. Do not make any modifications
+    -D	    Install development packages
     -f REQ. Force the program to redownload requirements where possible.
 	    Specific requirements can be passed in a space separated 
 	    string (e.g. "req1 req2 req3"). Must be specified last
@@ -425,10 +429,11 @@ check_succcessful_tasks(){
     printf "\r%b[ %b ] COMPLETE:\t%s checks completed of %s. %s\\n" "${OVERWRITE}" "${SUCCESS}" "${PASSED_CHECKS}" "${TOTAL_CHECKS}" "${message}"
 }
 
-while getopts bdfhsv arg; do
+while getopts bdDfhsv arg; do
     case "$arg" in
         b) BYPASS_CHECKS=1 ;;
         d) DRY_RUN=1 ;;
+	D) DEV=1 ;;
         f) FORCE=1 ARGS="${!#}" ;;
         h) usage && exit 0 ;;
         s) supported && exit 0 ;;
@@ -452,6 +457,7 @@ tested_version_warning
 check_apt_dependencies $PRE_APT_DEPENDENCIES 
 check_apt_repository "ansible/ansible"
 check_apt_dependencies $APT_DEPENDENCIES 
+[ $DEV == 1 ] && check_apt_dependencies $DEV_APT_PACKAGES
 
 # Determine which Duct-tape git branch to pull ansible requirements from
 check_git_branch
