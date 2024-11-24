@@ -72,6 +72,7 @@ DEV=0
 BYPASS_CHECKS=0
 FORCE=0
 SKIP_UPDATE=0
+GIT_BRANCH_SPECIFIED=0
 TOTAL_CHECKS=0
 PASSED_CHECKS=0
 
@@ -82,6 +83,7 @@ Installs the relevant requirements to get Ansible installed on
 the system and pull down desired runbooks from Git repository.
 
 OPTIONS:
+    -b	    Specify 'ansible-pull' git branch. Defaults to '$SPECIFIED_GIT_BRANCH'
     -B      Bypass OS check. Run script on untested systems
     -d      Perform dry run. Do not make any modifications
     -D	    Install development packages
@@ -429,8 +431,9 @@ check_succcessful_tasks(){
     printf "\r%b[ %b ] COMPLETE:\t%s checks completed of %s. %s\\n" "${OVERWRITE}" "${SUCCESS}" "${PASSED_CHECKS}" "${TOTAL_CHECKS}" "${message}"
 }
 
-while getopts BdDfhsv arg; do
+while getopts b:BdDfhsv arg; do
     case "$arg" in
+	b) GIT_BRANCH_SPECIFIED=1 SPECIFIED_GIT_BRANCH="$OPTARG" ;;
         B) BYPASS_CHECKS=1 ;;
         d) DRY_RUN=1 ;;
 	D) DEV=1 ;;
