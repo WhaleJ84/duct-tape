@@ -82,7 +82,7 @@ Installs the relevant requirements to get Ansible installed on
 the system and pull down desired runbooks from Git repository.
 
 OPTIONS:
-    -b      Bypass OS check. Run script on untested systems
+    -B      Bypass OS check. Run script on untested systems
     -d      Perform dry run. Do not make any modifications
     -D	    Install development packages
     -f REQ. Force the program to redownload requirements where possible.
@@ -429,9 +429,9 @@ check_succcessful_tasks(){
     printf "\r%b[ %b ] COMPLETE:\t%s checks completed of %s. %s\\n" "${OVERWRITE}" "${SUCCESS}" "${PASSED_CHECKS}" "${TOTAL_CHECKS}" "${message}"
 }
 
-while getopts bdDfhsv arg; do
+while getopts BdDfhsv arg; do
     case "$arg" in
-        b) BYPASS_CHECKS=1 ;;
+        B) BYPASS_CHECKS=1 ;;
         d) DRY_RUN=1 ;;
 	D) DEV=1 ;;
         f) FORCE=1 ARGS="${!#}" ;;
