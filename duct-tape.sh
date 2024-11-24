@@ -406,15 +406,15 @@ check_ansible_dependencies(){
     if [[ ! -f "$ANSIBLE_REQUIREMENT_FILE" ]]; then
         if curl "$REQUIREMENT_URL" -so "$ANSIBLE_REQUIREMENT_FILE" &>/dev/null; then  # if requirement file successfully downloads
             kill -9 $SPIN_PID 2>/dev/null
-            printf "\r%b[ %b ]  ANSIBLE:\tPulled requirements file\\n" "${OVERWRITE}" "${SUCCESS}"
+            printf "\r%b[ %b ]  ANSIBLE:\tPulled %s-requirements file\\n" "${OVERWRITE}" "${SUCCESS}" "${GIT_BRANCH}"
             PASSED_CHECKS=$(expr "$PASSED_CHECKS" + 1)
         else
             kill -9 $SPIN_PID 2>/dev/null
-            printf "\r%b[ %b ]  ANSIBLE:\tFailed to pull requirements\\n" "${OVERWRITE}" "${FAILURE}"
+            printf "\r%b[ %b ]  ANSIBLE:\tFailed to pull %s-requirements\\n" "${OVERWRITE}" "${FAILURE}" "${GIT_BRANCH}"
         fi
     else
         kill -9 $SPIN_PID 2>/dev/null
-        printf "\r%b[ %b ]  ANSIBLE:\tFound requirements file\\n" "${OVERWRITE}" "${SUCCESS}"
+        printf "\r%b[ %b ]  ANSIBLE:\tFound %s-requirements file\\n" "${OVERWRITE}" "${SUCCESS}" "${GIT_BRANCH}"
         PASSED_CHECKS=$(expr "$PASSED_CHECKS" + 1)
     fi
     compare_ansible_dependencies
