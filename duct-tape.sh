@@ -326,12 +326,15 @@ check_git_branch(){
     spinner_text "     GIT" "Checking branch" &
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
-    if [ "$(git rev-parse --abbrev-ref HEAD 2>/dev/null)" ]; then  # if a Git branch is detected
+    GIT_BRANCH="$SPECIFIED_GIT_BRANCH"
+    if [ "$GIT_BRANCH_SPECIFIED" -ne 0 ]; then
+	kill -9 $SPIN_PID 2>/dev/null
+	printf "\r%b[ %b ]      GIT:\tUsing %s branch\\n" "${OVERWRITE}" "${SUCCESS}" "$GIT_BRANCH"
+    elif [ "$(git rev-parse --abbrev-ref HEAD 2>/dev/null)" ]; then  # if a Git branch is detected
         GIT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
         kill -9 $SPIN_PID 2>/dev/null
         printf "\r%b[ %b ]      GIT:\tUsing %s branch\\n" "${OVERWRITE}" "${SUCCESS}" "$GIT_BRANCH"
     else  # if no Git branch is detected
-        GIT_BRANCH="$SPECIFIED_GIT_BRANCH"
         kill -9 $SPIN_PID 2>/dev/null
         printf "\r%b[ %b ]      GIT:\tUsing %s branch by default\\n" "${OVERWRITE}" "${SUCCESS}" "$GIT_BRANCH"
     fi
