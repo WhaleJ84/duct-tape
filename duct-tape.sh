@@ -56,7 +56,7 @@ TESTED_UBUNTU_VERSIONS="20.04 24.04"
 PRE_APT_DEPENDENCIES="software-properties-common"
 APT_DEPENDENCIES="ansible git"
 DEV_APT_PACKAGES="ansible-lint yamllint"
-DEFAULT_GIT_BRANCH="main"
+SPECIFIED_GIT_BRANCH="main"
 
 COL_NC='\e[0m'
 COL_LIGHT_GREEN='\e[1;32m'
@@ -329,7 +329,7 @@ check_git_branch(){
         kill -9 $SPIN_PID 2>/dev/null
         printf "\r%b[ %b ]      GIT:\tUsing %s branch\\n" "${OVERWRITE}" "${SUCCESS}" "$GIT_BRANCH"
     else  # if no Git branch is detected
-        GIT_BRANCH="$DEFAULT_GIT_BRANCH"
+        GIT_BRANCH="$SPECIFIED_GIT_BRANCH"
         kill -9 $SPIN_PID 2>/dev/null
         printf "\r%b[ %b ]      GIT:\tUsing %s branch by default\\n" "${OVERWRITE}" "${SUCCESS}" "$GIT_BRANCH"
     fi
