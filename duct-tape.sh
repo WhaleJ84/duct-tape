@@ -78,7 +78,7 @@ PASSED_CHECKS=0
 
 usage(){
     cat << EOF
-Usage: duct-tape [OPTION]... [-f ["REQUIREMENT[ REQUIREMENT]..."]]
+Usage: duct-tape [OPTION]... [-F ["REQUIREMENT[ REQUIREMENT]..."]]
 Installs the relevant requirements to get Ansible installed on 
 the system and pull down desired runbooks from Git repository.
 
@@ -87,7 +87,7 @@ OPTIONS:
     -B      Bypass OS check. Run script on untested systems
     -d      Perform dry run. Do not make any modifications
     -D	    Install development packages
-    -f REQ. Force the program to redownload requirements where possible.
+    -F REQ. Force the program to redownload requirements where possible.
 	    Specific requirements can be passed in a space separated 
 	    string (e.g. "req1 req2 req3"). Must be specified last
     -h      Display this message and exit
@@ -370,7 +370,7 @@ install_ansible_dependencies(){
 compare_ansible_dependencies(){
     ROLE_REQUIREMENTS="$(grep name /tmp/$GIT_BRANCH-requirements.yml | awk '{print $3}' | paste -sd ' ' -)"
     REQUIRES_INSTALL=""
-    [ "$ARGS" != "-f" ] && [ "$ARGS" != "" ] && ROLE_REQUIREMENTS="$ARGS"
+    [ "$ARGS" != "-F" ] && [ "$ARGS" != "" ] && ROLE_REQUIREMENTS="$ARGS"
     for requirement in $ROLE_REQUIREMENTS; do
 	TOTAL_CHECKS=$(expr "$TOTAL_CHECKS" + 1)
 	spinner_text " ANSIBLE" "Checking dependency: $requirement" &
@@ -437,13 +437,13 @@ check_succcessful_tasks(){
     printf "\r%b[ %b ] COMPLETE:\t%s checks completed of %s. %s\\n" "${OVERWRITE}" "${SUCCESS}" "${PASSED_CHECKS}" "${TOTAL_CHECKS}" "${message}"
 }
 
-while getopts b:BdDfhsv arg; do
+while getopts b:BdDFhsv arg; do
     case "$arg" in
 	b) GIT_BRANCH_SPECIFIED=1 SPECIFIED_GIT_BRANCH="$OPTARG" ;;
         B) BYPASS_CHECKS=1 ;;
         d) DRY_RUN=1 ;;
 	D) DEV=1 ;;
-        f) FORCE=1 ARGS="${!#}" ;;
+        F) FORCE=1 ARGS="${!#}" ;;
         h) usage && exit 0 ;;
         s) supported && exit 0 ;;
 	v) echo $VERSION && exit 0 ;;
