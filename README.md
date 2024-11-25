@@ -24,11 +24,11 @@ curl -s https://raw.githubusercontent.com/WhaleJ84/duct-tape/main/duct-tape.sh |
 curl -sL dt.james-whale.com | sudo bash
 
 # locally
-./PATH/TO/duct-tape.sh
+sudo ./PATH/TO/duct-tape.sh
 
 # simulate curl locally
-curl -s file:///PATH/TO/duct-tape.sh | bash
+curl -s file:///PATH/TO/duct-tape.sh | sudo bash
 
 # to pass arguments to the script (e.g. `-h`)
-curl -s file:///PATH/TO/duct-tape.sh | bash -s - -h
+curl -s file:///PATH/TO/duct-tape.sh | sudo bash -s - -h
 ```
