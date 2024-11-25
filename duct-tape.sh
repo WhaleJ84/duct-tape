@@ -404,7 +404,7 @@ check_ansible_dependencies(){
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
     if [ "$GIT_BRANCH_SPECIFIED" -eq 1 ]; then
-	rm "$ANSIBLE_REQUIREMENT_FILE"
+	rm "$ANSIBLE_REQUIREMENT_FILE" 2>/dev/null
     fi
     if [[ ! -f "$ANSIBLE_REQUIREMENT_FILE" ]]; then
         if curl "$REQUIREMENT_URL" -so "$ANSIBLE_REQUIREMENT_FILE" &>/dev/null; then  # if requirement file successfully downloads
