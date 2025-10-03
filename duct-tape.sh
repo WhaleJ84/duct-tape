@@ -45,7 +45,7 @@ LOGO="::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 ::::::::::::::::::::;:;:;:;::::::;::::::;:::::::;::::::.:%8%.;%SSSS;;8;::;:::;:
 ::;::;:::;::;::;::;::::::::::;:::::;::;::::;::;::::::::::;::::;S88t:.::::::;:::
 :::::::;::::::::::::::;::;:::::;::;::::::;::::::::;::;:;::::::;::;::;::;::::::;
-::; duct-tape ;:;::;:::::::;:::::::::;::::::;::;::::::::::;:::::::  v2.1.0  ;::
+::; duct-tape ;:;::;:::::::;:::::::::;::::::;::;::::::::::;:::::::  v2.2.0  ;::
 ::::::::;:::::::::::::;::::::;::;::;:::;::;:::::::;::;::;::::;::;::;::;::::::::
 :::;::;:::::;:::;:::;:::;::;:::::::::::::::::;::;::::::::::;:::::::::::::;::;::"
 VERSION=$(printf "%s\\n" "$LOGO" | grep "duct-tape" | awk '{print $4}')
@@ -57,6 +57,8 @@ PRE_APT_DEPENDENCIES="software-properties-common"
 APT_DEPENDENCIES="ansible git"
 DEV_APT_PACKAGES="ansible-lint yamllint"
 SPECIFIED_GIT_BRANCH="main"
+REPO_OWNER="WhaleJ84"
+REPO_NAME="anible-pull"
 
 COL_NC='\e[0m'
 COL_LIGHT_GREEN='\e[1;32m'
@@ -90,9 +92,12 @@ OPTIONS:
     -d      Perform dry run. Do not make any modifications
     -D	    Install development packages
     -F REQ. Force the program to redownload requirements where possible.
-	    Specific requirements can be passed in a space separated 
-	    string (e.g. "req1 req2 req3"). Must be specified last
+	      Specific requirements can be passed in a space separated 
+	      string (e.g. "req1 req2 req3"). Requires -a flag to be set.
+              Must be specified last
     -h      Display this message and exit
+    -n NAME Specify the owner of the Git repo. Defaults to 'WhaleJ84'
+    -o OWNR Specify the name of the Git repo. Defaults to 'ansible-pull'
     -s      Display supported operating systems and versions and exit
     -v	    Display version number of duct-tape and exit
 EOF
@@ -402,7 +407,7 @@ compare_ansible_dependencies(){
 
 check_ansible_dependencies(){
     TOTAL_CHECKS=$(expr "$TOTAL_CHECKS" + 1)
-    REQUIREMENT_URL="https://raw.githubusercontent.com/WhaleJ84/ansible-pull/$GIT_BRANCH/requirements.yml"
+    REQUIREMENT_URL="https://raw.githubusercontent.com/$REPO_OWNER/$REPO_NAME/$GIT_BRANCH/requirements.yml"
     spinner_text " ANSIBLE" "Pulling requirements" &
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
@@ -440,7 +445,7 @@ check_succcessful_tasks(){
     printf "\r%b[ %b ] COMPLETE:\t%s checks completed of %s. %s\\n" "${OVERWRITE}" "${SUCCESS}" "${PASSED_CHECKS}" "${TOTAL_CHECKS}" "${message}"
 }
 
-while getopts b:aBdDFhsv arg; do
+while getopts b:n:o:aBdDFhsv arg; do
     case "$arg" in
         a) INSTALL_ANSIBLE_DEPS=1 ;;
         b) GIT_BRANCH_SPECIFIED=1 SPECIFIED_GIT_BRANCH="$OPTARG" ;;
@@ -449,6 +454,8 @@ while getopts b:aBdDFhsv arg; do
         D) DEV=1 ;;
         F) FORCE=1 ARGS="${!#}" ;;
         h) usage && exit 0 ;;
+        n) REPO_NAME="$OPTARG" ;;
+        o) REPO_OWNER="$OPTARG" ;;
         s) supported && exit 0 ;;
         v) echo $VERSION && exit 0 ;;
         ?) usage | head -1 && printf "Try 'duct-tape -h' for more information.\\n" && exit 0 ;;
@@ -481,5 +488,5 @@ check_git_branch
 # Inform user of number of successful tasks
 check_succcessful_tasks
 
-printf "[ %b ] COMPLETE:\tTo continue configuring system, run:\\nexport PY_COLORS='1' ANSIBLE_FORCE_COLOR='1' && \\\\\nansible-pull -KU https://github.com/WhaleJ84/ansible-pull.git\\n" "${SUCCESS}"
+printf "[ %b ] COMPLETE:\tTo continue configuring system, run:\\nexport PY_COLORS='1' ANSIBLE_FORCE_COLOR='1' && \\\\\nansible-pull -KU https://github.com/%s/%s.git\\n" "${SUCCESS}" "$REPO_OWNER" "$REPO_NAME"
 printf "[ %b ]      TIP:\tSee README on how to configure specific applications\\n" "${SUCCESS}"
