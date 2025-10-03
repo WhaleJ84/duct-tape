@@ -440,14 +440,14 @@ check_succcessful_tasks(){
 
 while getopts b:BdDFhsv arg; do
     case "$arg" in
-	b) GIT_BRANCH_SPECIFIED=1 SPECIFIED_GIT_BRANCH="$OPTARG" ;;
+        b) GIT_BRANCH_SPECIFIED=1 SPECIFIED_GIT_BRANCH="$OPTARG" ;;
         B) BYPASS_CHECKS=1 ;;
         d) DRY_RUN=1 ;;
-	D) DEV=1 ;;
+        D) DEV=1 ;;
         F) FORCE=1 ARGS="${!#}" ;;
         h) usage && exit 0 ;;
         s) supported && exit 0 ;;
-	v) echo $VERSION && exit 0 ;;
+        v) echo $VERSION && exit 0 ;;
         ?) usage | head -1 && printf "Try 'duct-tape -h' for more information.\\n" && exit 0 ;;
     esac
 done 2>/dev/null
