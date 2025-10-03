@@ -45,7 +45,7 @@ LOGO="::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 ::::::::::::::::::::;:;:;:;::::::;::::::;:::::::;::::::.:%8%.;%SSSS;;8;::;:::;:
 ::;::;:::;::;::;::;::::::::::;:::::;::;::::;::;::::::::::;::::;S88t:.::::::;:::
 :::::::;::::::::::::::;::;:::::;::;::::::;::::::::;::;:;::::::;::;::;::;::::::;
-::; duct-tape ;:;::;:::::::;:::::::::;::::::;::;::::::::::;:::::::  v2.0.1  ;::
+::; duct-tape ;:;::;:::::::;:::::::::;::::::;::;::::::::::;:::::::  v2.1.0  ;::
 ::::::::;:::::::::::::;::::::;::;::;:::;::;:::::::;::;::;::::;::;::;::;::::::::
 :::;::;:::::;:::;:::;:::;::;:::::::::::::::::;::;::::::::::;:::::::::::::;::;::"
 VERSION=$(printf "%s\\n" "$LOGO" | grep "duct-tape" | awk '{print $4}')
@@ -75,6 +75,7 @@ SKIP_UPDATE=0
 GIT_BRANCH_SPECIFIED=0
 TOTAL_CHECKS=0
 PASSED_CHECKS=0
+INSTALL_ANSIBLE_DEPS=0
 
 usage(){
     cat << EOF
@@ -83,6 +84,7 @@ Installs the relevant requirements to get Ansible installed on
 the system and pull down desired runbooks from Git repository.
 
 OPTIONS:
+    -a      Install Ansible role dependencies. Skipped by default
     -b	    Specify 'ansible-pull' git branch. Defaults to '$SPECIFIED_GIT_BRANCH'
     -B      Bypass OS check. Run script on untested systems
     -d      Perform dry run. Do not make any modifications
@@ -438,16 +440,17 @@ check_succcessful_tasks(){
     printf "\r%b[ %b ] COMPLETE:\t%s checks completed of %s. %s\\n" "${OVERWRITE}" "${SUCCESS}" "${PASSED_CHECKS}" "${TOTAL_CHECKS}" "${message}"
 }
 
-while getopts b:BdDFhsv arg; do
+while getopts b:aBdDFhsv arg; do
     case "$arg" in
-	b) GIT_BRANCH_SPECIFIED=1 SPECIFIED_GIT_BRANCH="$OPTARG" ;;
+        a) INSTALL_ANSIBLE_DEPS=1 ;;
+        b) GIT_BRANCH_SPECIFIED=1 SPECIFIED_GIT_BRANCH="$OPTARG" ;;
         B) BYPASS_CHECKS=1 ;;
         d) DRY_RUN=1 ;;
-	D) DEV=1 ;;
+        D) DEV=1 ;;
         F) FORCE=1 ARGS="${!#}" ;;
         h) usage && exit 0 ;;
         s) supported && exit 0 ;;
-	v) echo $VERSION && exit 0 ;;
+        v) echo $VERSION && exit 0 ;;
         ?) usage | head -1 && printf "Try 'duct-tape -h' for more information.\\n" && exit 0 ;;
     esac
 done 2>/dev/null
@@ -473,7 +476,7 @@ check_apt_dependencies $APT_DEPENDENCIES
 check_git_branch
 
 # Ensire the relevant ansible dependencies are installed
-check_ansible_dependencies
+[ $INSTALL_ANSIBLE_DEPS == 1 ] && check_ansible_dependencies
 
 # Inform user of number of successful tasks
 check_succcessful_tasks
