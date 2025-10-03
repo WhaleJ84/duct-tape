@@ -90,8 +90,9 @@ OPTIONS:
     -d      Perform dry run. Do not make any modifications
     -D	    Install development packages
     -F REQ. Force the program to redownload requirements where possible.
-	    Specific requirements can be passed in a space separated 
-	    string (e.g. "req1 req2 req3"). Must be specified last
+	      Specific requirements can be passed in a space separated 
+	      string (e.g. "req1 req2 req3"). Requires -a flag to be set.
+              Must be specified last
     -h      Display this message and exit
     -s      Display supported operating systems and versions and exit
     -v	    Display version number of duct-tape and exit
