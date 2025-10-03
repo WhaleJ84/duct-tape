@@ -57,6 +57,8 @@ PRE_APT_DEPENDENCIES="software-properties-common"
 APT_DEPENDENCIES="ansible git"
 DEV_APT_PACKAGES="ansible-lint yamllint"
 SPECIFIED_GIT_BRANCH="main"
+REPO_AUTHOR="WhaleJ84"
+REPO_NAME="anible-pull"
 
 COL_NC='\e[0m'
 COL_LIGHT_GREEN='\e[1;32m'
@@ -403,7 +405,7 @@ compare_ansible_dependencies(){
 
 check_ansible_dependencies(){
     TOTAL_CHECKS=$(expr "$TOTAL_CHECKS" + 1)
-    REQUIREMENT_URL="https://raw.githubusercontent.com/WhaleJ84/ansible-pull/$GIT_BRANCH/requirements.yml"
+    REQUIREMENT_URL="https://raw.githubusercontent.com/$REPO_AUTHOR/$REPO_NAME/$GIT_BRANCH/requirements.yml"
     spinner_text " ANSIBLE" "Pulling requirements" &
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
@@ -482,5 +484,5 @@ check_git_branch
 # Inform user of number of successful tasks
 check_succcessful_tasks
 
-printf "[ %b ] COMPLETE:\tTo continue configuring system, run:\\nexport PY_COLORS='1' ANSIBLE_FORCE_COLOR='1' && \\\\\nansible-pull -KU https://github.com/WhaleJ84/ansible-pull.git\\n" "${SUCCESS}"
+printf "[ %b ] COMPLETE:\tTo continue configuring system, run:\\nexport PY_COLORS='1' ANSIBLE_FORCE_COLOR='1' && \\\\\nansible-pull -KU https://github.com/%s/%s.git\\n" "${SUCCESS}" "$REPO_AUTHOR" "$REPO_NAME"
 printf "[ %b ]      TIP:\tSee README on how to configure specific applications\\n" "${SUCCESS}"
