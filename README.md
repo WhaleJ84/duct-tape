@@ -32,3 +32,10 @@ curl -s file:///PATH/TO/duct-tape.sh | sudo bash
 # to pass arguments to the script (e.g. `-h`)
 curl -s file:///PATH/TO/duct-tape.sh | sudo bash -s - -h
 ```
+
+## Developer Notes
+
+Any extra bits of information that makes development of the tools including this, `ansible-pull`, it's respective roles, etc. should be noted here.
+
+- Create a file with the local system's sudo password and specify it with the `ansible-pull` command with `--become-pass-file /path/to/file`
+
