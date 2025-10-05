@@ -58,7 +58,7 @@ APT_DEPENDENCIES="ansible git"
 DEV_APT_PACKAGES="ansible-lint yamllint"
 SPECIFIED_GIT_BRANCH="main"
 REPO_OWNER="WhaleJ84"
-REPO_NAME="anible-pull"
+REPO_NAME="ansible-pull"
 
 COL_NC='\e[0m'
 COL_LIGHT_GREEN='\e[1;32m'
@@ -407,7 +407,7 @@ compare_ansible_dependencies(){
 
 check_ansible_dependencies(){
     TOTAL_CHECKS=$(expr "$TOTAL_CHECKS" + 1)
-    REQUIREMENT_URL="https://raw.githubusercontent.com/$REPO_OWNER/$REPO_NAME/$GIT_BRANCH/requirements.yml"
+    REQUIREMENT_URL="https://raw.githubusercontent.com/$REPO_OWNER/$REPO_NAME/refs/heads/$GIT_BRANCH/requirements.yml"
     spinner_text " ANSIBLE" "Pulling requirements" &
     SPIN_PID="$!"
     trap 'kill -9 "$SPIN_PID"' $(seq 0 15)
